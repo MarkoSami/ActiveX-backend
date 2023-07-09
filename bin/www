@@ -4,21 +4,20 @@
  * Module dependencies.
  */
 
-let app = require("../app");
-let debug = require("debug")("application:server");
-let http = require("http");
-let redisLib = require("../lib/reidsLib");
+const { randomBytes } = require('crypto');
+const app = require('../app');
+const debug = require('debug')('application:server');
+const http = require('http');
+const { v4: uuidv4 } = require('uuid');
+const utils = require('../lib/utils');
 
-// creating redis connection
-redisLib.createRedisConnection();
-//////
 
 /**
  * Get port from environment and store in Express.
  */
 
-let port = normalizePort(process.env.PORT || "3000");
-app.set("port", port);
+let port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
 
 /**
  * Create HTTP server.
@@ -26,75 +25,105 @@ app.set("port", port);
 
 let server = http.createServer(app);
 
+
 // establish socketIO server
-const io = require("socket.io")(server, {
+const io = require('socket.io')(server, {
   cors: {
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:5175",
-    ],
-    methods: ["GET", "POST"],
-    allowedHeaders: ["my-custom-header"],
-    credentials: true,
-  },
+    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['my-custom-header'],
+    credentials: true
+  }
 });
 
-// Store room information in redis
-// creating redis rooms
+// Store room information 
+let RandomOneToOneRooms = [];// rooms which are available to join randomly between 2 persons
 
-redisLib.createRoomsCluster();
+let oneToOneRoom = [];//private room bwtewwn 2 persons
+
+let RandomGroupRooms = [];//rooms which are available to join randomly between 2 or more persons
+
+let GroupRooms = [];//private rooms between 2 or more persons
+
+
+
 
 io.on("connection", (socket) => {
-  socket.on("video_started", (roomId) => {
-    // socket.to(roomId.roomId).broadcast.emit("video_started");
-    console.log("video_started_to_client");
-    console.log(roomId);
+  // console.log(socket.id);
+
+  // join new room event 
+  socket.on("join_random_room", async () => {
+    let roomId;
+    if (oneToOneRoom.length == 0) {
+      roomId = uuidv4();
+      oneToOneRoom.push(roomId)
+    } else {
+      let randomIndex = utils.getRandomNumber(0, oneToOneRoom.length - 1);
+      roomId = oneToOneRoom[randomIndex];
+      oneToOneRoom.splice(randomIndex, 1);
+    }
+    socket.join(roomId);
+    console.log('user joined random room ' + roomId);
+    socket.emit('joined_random_room', roomId);
+
   });
+
+  socket.on('joined_random_room', () => {
+    console.log('yooo');
+
+  })
+
+  // socket.on("join_random_room", () => {
+  //   let roomId = redisLib.getRandomRoomId();
+  //   socket.join(roomId);
+  //   console.log("User joined room: " + roomId);
+  // });
+
+  socket.on("video_started", (data) => {
+    socket.to(data.roomId).emit("video_started", (data.currentTime));
+    console.log("video_started_to_client" + data.roomId);
+  });
+
+
   socket.on("video_paused", (roomId) => {
-    // socket.to(roomId.roomId).broadcast.emit("video_paused");
-    console.log("video_paused_to_client");
-    console.log(roomId);
-  });
-  socket.on("video_timeChanged", ({ roomId, time }) => {
-    // socket.to(roomId.roomId).broadcast.emit("video_timeChanged", { time });
-    console.log("videoTime_changed_to_client");
-    console.log(roomId);
-  });
-  socket.on("video_URLChanged", ({ roomId, URLVideo }) => {
-    // socket.to(roomId.roomId).broadcast.emit("video_started", { URLVideo });
-    console.log("video_URL_to_client");
-    console.log(roomId);
+    socket.to(roomId).emit("video_paused");
+    console.log("video_paused_to_client" + roomId);
   });
 
-  // join new room event
-  socket.on("join_room", () => {
-    let roomId = uuidv4();
-    socket.join(roomId);
-    redisLib.addNewRoom(roomId);
-    console.log("User joined room: " + roomId);
-  });
 
-  socket.on("join_random_room", () => {
-    let roomId = redisLib.getRandomRoomId();
-    socket.join(roomId);
-    socket.emit("joined_random_room", { roomId });
-    console.log("User joined room: " + roomId);
-  });
+  socket.on("video_ready", (data) => {
+    console.log(data);
+    socket.to(data.roomId).emit("video_ready", data.video_URL)
+    console.log(`Video started in room ${data.roomId} , URL ${data.video_URL}`);
+
+  })
+  // socket.on("video_timeChanged", ({ roomId, time }) => {
+  //   socket.to(roomId).emit("video_timeChanged", { time });
+  //   console.log("videoTime_changed_to_client");
+  //   console.log(roomId);
+  // });
+  // socket.on("video_URLChanged", ({ roomId, URLVideo }) => {
+  //   socket.to(roomId).emit("video_started", { URLVideo });
+  //   console.log("video_URL_to_client");
+  //   console.log(roomId);
+  // });
+
+
 
   socket.on("sendMessagePrivate", (data) => {
     socket.to(data.messageData.room).emit("messageReceived", data);
     // console.log(`Broadcasted a message to all the clients... message: ${data}`);
   });
 
-  socket.on("sendMessage", (data) => {
-    console.log(data);
-    socket.broadcast.emit("messageReceived", data);
-  });
+  // socket.on("sendMessage", (data) => {
+  //   console.log(data);
+  //   socket.broadcast.emit("messageReceived", data);
+  // });
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected: " + socket.id);
-  });
+  // socket.on("disconnect", () => {
+  //   console.log("User disconnected: " + socket.id);
+
+  // });
 });
 
 /**
@@ -102,8 +131,8 @@ io.on("connection", (socket) => {
  */
 
 server.listen(port);
-server.on("error", onError);
-server.on("listening", onListening);
+server.on('error', onError);
+server.on('listening', onListening);
 
 /**
  * Normalize a port into a number, string, or false.
@@ -130,20 +159,22 @@ function normalizePort(val) {
  */
 
 function onError(error) {
-  if (error.syscall !== "listen") {
+  if (error.syscall !== 'listen') {
     throw error;
   }
 
-  let bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
+  let bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
-    case "EACCES":
-      console.error(bind + " requires elevated privileges");
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
       process.exit(1);
       break;
-    case "EADDRINUSE":
-      console.error(bind + " is already in use");
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
       process.exit(1);
       break;
     default:
@@ -157,6 +188,8 @@ function onError(error) {
 
 function onListening() {
   let addr = server.address();
-  let bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
-  debug("Listening on " + bind);
+  let bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
 }
