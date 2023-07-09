@@ -80,20 +80,20 @@ io.on("connection", (socket) => {
   // });
 
   socket.on("video_started", (data) => {
-    socket.to(data.roomId).emit("video_started", (data.currentTime));
+    socket.to(data.roomId).emit("video_started_to", (data.currentTime));
     console.log("video_started_to_client" + data.roomId);
   });
 
 
   socket.on("video_paused", (roomId) => {
-    socket.to(roomId).emit("video_paused");
+    socket.to(roomId).emit("video_paused_to");
     console.log("video_paused_to_client" + roomId);
   });
 
 
   socket.on("video_ready", (data) => {
     console.log(data);
-    socket.to(data.roomId).emit("video_ready", data.video_URL)
+    socket.to(data.roomId).emit("video_ready_to", data.video_URL)
     console.log(`Video started in room ${data.roomId} , URL ${data.video_URL}`);
 
   })
