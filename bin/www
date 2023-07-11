@@ -60,17 +60,32 @@ io.on("connection", (socket) => {
     } else {
       let randomIndex = utils.getRandomNumber(0, oneToOneRoom.length - 1);
       roomId = oneToOneRoom[randomIndex];
-      oneToOneRoom.splice(randomIndex, 1);
+      // oneToOneRoom.splice(randomIndex, 1);
     }
     socket.join(roomId);
     console.log('user joined random room ' + roomId);
+    console.log("____________________________________");
     socket.emit('joined_random_room', roomId);
 
   });
 
-  socket.on('joined_random_room', () => {
-    console.log('yooo');
 
+
+
+  socket.on('create_room', () => {
+    const roomID = uuidv4();
+    GroupRooms.push(roomID);
+    socket.join(roomID);
+    io.emit('room_created', roomID);
+    console.log(`User created and joined a new  room , room ID : ${roomID}`);
+    console.log("____________________________________");
+  })
+
+
+  socket.on('join_room', (roomId) => {
+
+    socket.join(roomId);
+    console.log(`User joined room , room ID: ${roomId}`);
   })
 
   // socket.on("join_random_room", () => {
@@ -82,12 +97,14 @@ io.on("connection", (socket) => {
   socket.on("video_started", (data) => {
     socket.to(data.roomId).emit("video_started_to", (data.currentTime));
     console.log("video_started_to_client" + data.roomId);
+    console.log("____________________________________");
   });
 
 
   socket.on("video_paused", (roomId) => {
     socket.to(roomId).emit("video_paused_to");
     console.log("video_paused_to_client" + roomId);
+    console.log("____________________________________");
   });
 
 
@@ -95,24 +112,15 @@ io.on("connection", (socket) => {
     console.log(data);
     socket.to(data.roomId).emit("video_ready_to", data.video_URL)
     console.log(`Video started in room ${data.roomId} , URL ${data.video_URL}`);
+    console.log("____________________________________");
 
   })
-  // socket.on("video_timeChanged", ({ roomId, time }) => {
-  //   socket.to(roomId).emit("video_timeChanged", { time });
-  //   console.log("videoTime_changed_to_client");
-  //   console.log(roomId);
-  // });
-  // socket.on("video_URLChanged", ({ roomId, URLVideo }) => {
-  //   socket.to(roomId).emit("video_started", { URLVideo });
-  //   console.log("video_URL_to_client");
-  //   console.log(roomId);
-  // });
 
 
 
-  socket.on("sendMessagePrivate", (data) => {
-    socket.to(data.messageData.room).emit("messageReceived", data);
-    // console.log(`Broadcasted a message to all the clients... message: ${data}`);
+  socket.on("send_message", (data) => {
+    socket.to(data.messageData.room).emit("message_received", data);
+    // console.log(`Broadcasted a message to all the clients... message: ${data.messageData.room}`);
   });
 
   // socket.on("sendMessage", (data) => {
