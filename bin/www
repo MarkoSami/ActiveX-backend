@@ -88,11 +88,6 @@ io.on("connection", (socket) => {
     console.log(`User joined room , room ID: ${roomId}`);
   })
 
-  // socket.on("join_random_room", () => {
-  //   let roomId = redisLib.getRandomRoomId();
-  //   socket.join(roomId);
-  //   console.log("User joined room: " + roomId);
-  // });
 
   socket.on("video_started", (data) => {
     socket.to(data.roomId).emit("video_started_to", (data.currentTime));
@@ -119,19 +114,10 @@ io.on("connection", (socket) => {
 
 
   socket.on("send_message", (data) => {
-    socket.to(data.messageData.room).emit("message_received", data);
+    socket.to(data.messageData.room).emit("message_received", data.messageData);
     // console.log(`Broadcasted a message to all the clients... message: ${data.messageData.room}`);
   });
 
-  // socket.on("sendMessage", (data) => {
-  //   console.log(data);
-  //   socket.broadcast.emit("messageReceived", data);
-  // });
-
-  // socket.on("disconnect", () => {
-  //   console.log("User disconnected: " + socket.id);
-
-  // });
 });
 
 /**
