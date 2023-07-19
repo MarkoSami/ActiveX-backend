@@ -1,12 +1,6 @@
 const mongoose = require('mongoose');
 
 
-const reactTypeEnum = Object.freeze({
-    COOL: 'cool',
-    STAR: 'star',
-    THUNDER: 'thunder'
-});
-
 const ReactSchema = new mongoose.Schema({
     publisher: {
         type: mongoose.Schema.Types.ObjectId,
@@ -14,8 +8,7 @@ const ReactSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['cool', 'star', 'thunder'],
-        default: 'cool'
+        enum: ['cool', 'amazing', 'thunder'],
     },
     reactDate: {
         type: Date,

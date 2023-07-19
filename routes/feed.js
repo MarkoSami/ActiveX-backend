@@ -19,6 +19,12 @@ router
         }
 
     })
+    .all('/', (req, res, next) => {
+        res.statusCode = 403;
+        res.json(`The ob=nly allowe method on this path is GET`);
+    })
 
+
+module.exports = router;
 
 
