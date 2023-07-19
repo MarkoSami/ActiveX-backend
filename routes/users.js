@@ -2,90 +2,92 @@ var express = require('express');
 var router = express.Router();
 const User = require('../models/User');
 
-// GET all users
-router.get('/', (req, res, next) => {
-  User.find()
-    .then(users => {
+
+// handling HTTP requests on the '/users/' gateway
+router
+  .get('/', async (req, res, next) => {
+    try {
+      const users = await User.find({}).select('-password');
+      res.status = 200;
+      res.contentType = 'application/json';
       res.json(users);
-    })
-    .catch(err => {
-      console.error(err);
-      res.status(500).json({ error: 'Internal server error' });
-    });
-});
+    } catch (err) {
+      res.statusCode = 500;
+      res.contentType = 'application/json';
+      res.json(err + `internal server error`);
+      next(err);
+    }
+  })
+  .post('/', async (req, res, next) => {
+    const { body } = req;
+    try {
+      const result = await User.create(body);
+      res.statusCode = 200;
+      res.json(result);
+    } catch (err) {
+      res.statusCode = 500;
+      res.contentType = 'application/json';
+      res.json(err + `internal server error`);
+      next(err);
+    }
+  })
+  .put('/', async (req, res, next) => {
+    res.status = 403;
+    res.json(`PUT request is not allowed on this URL: /users`);
+  })
+  .delete('/', async (req, res, next) => {
+    try {
+      const result = await User.deleteMany();
+      res.json(result);
+    } catch (err) {
+      res.statusCode = 500;
+      res.contentType = 'application/json';
+      res.json(err + `internal server error`);
+    }
+  })
 
-// GET a specific user by ID
-router.get('/:id', (req, res, next) => {
-  const userId = req.params.id;
+// handling HTTP requests on the '/users/:id' gateway
+router
+  .get('/:id', async (req, res, next) => {
+    try {
+      const userId = req.params.id;
+      const users = await User.findOne({ id }).select('-password');
+      res.status = 200;
+      res.contentType = 'application/json';
+      res.json(users);
+    } catch (err) {
+      res.statusCode = 500;
+      res.contentType = 'application/json';
+      res.json(err + `internal server error`);
+      next(err);
+    }
+  })
+  .post('/:id', async (req, res, next) => {
+    res.statusCode = 403;
+    res.json(`POST requests is not allowed on this URL: /users/:id`);
+  })
+  .put('/:id', async (req, res, next) => {
+    try {
+      const result = User.updateOne({ id });
+      res.json(result);
+    } catch (err) {
+      res.statusCode = 500;
+      res.contentType = 'application/json';
+      res.json(err + `internal server error`);
+      next(err);
+    }
+  })
+  .delete('/:id', async (req, res, next) => {
+    try {
+      const result = User.deleteOne({ id });
+      res.json(result);
+    } catch (err) {
+      res.statusCode = 500;
+      res.contentType = 'application/json';
+      res.json(err + `internal server error`);
+      next(err);
+    }
+  })
 
-  User.findById(userId)
-    .then(user => {
-      if (!user) {
-        res.status(404).json({ error: 'User not found' });
-      } else {
-        res.json(user);
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      res.status(500).json({ error: 'Internal server error' });
-    });
-});
-
-// POST create a new user
-router.post('/', (req, res, next) => {
-  const { userName, password } = req.body;
-
-  const newUser = new User({
-    userName,
-    password
-  });
-
-  newUser.save()
-    .then(user => {
-      res.json(user);
-    })
-    .catch(err => {
-      console.error(err);
-      res.status(500).json({ error: 'Internal server error' });
-    });
-});
-
-// PUT update an existing user
-router.put('/:id', (req, res, next) => {
-  const userId = req.params.id;
-  const { userName, password } = req.body;
-
-  User.findByIdAndUpdate(userId, { userName, password }, { new: true })
-    .then(updatedUser => {
-      if (!updatedUser) {
-        res.status(404).json({ error: 'User not found' });
-      } else {
-        res.json(updatedUser);
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      res.status(500).json({ error: 'Internal server error' });
-    });
-});
-
-// DELETE a user
-router.delete('/:id', (req, res, next) => {
-  const userId = req.params.id;
-
-  User.findByIdAndRemove(userId)
-    .then(removedUser => {
-      if (!removedUser) {
-        res.status(404).json({ error: 'User not found' });
-      } else {
-        res.json({ message: 'User deleted successfully' });
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      res.status(500).json({ error: 'Internal server error' });
-    });
-});
 
 module.exports = router;
