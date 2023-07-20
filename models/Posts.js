@@ -3,7 +3,7 @@ const reactsEnum = require('./ReactsEnum');
 
 const PostSchema = new mongoose.Schema({
     publisher: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         require: [true, `publisher can't be empty`]
     },
     caption: {

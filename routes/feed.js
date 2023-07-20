@@ -9,7 +9,7 @@ router
         try {
             const user = await User.findById(userID);
             const feed = await Post.find({ publisher: { $in: [userID, ...user.friends] } })
-                .sort({ postPoints })
+                .sort({ publishDate })
                 .skip(user.feedOffset)
                 .limit(50);
 
