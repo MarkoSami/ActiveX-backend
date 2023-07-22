@@ -7,7 +7,7 @@ const User = require('../models/User');
 router
   .get('/', async (req, res, next) => {
     try {
-      const users = await User.find({}).select('-password');
+      const users = await User.find({}).select('-password -feedOffset -commentOffset -friendRequestsOffset');
       res.status = 200;
       res.contentType = 'application/json';
       res.json(users);

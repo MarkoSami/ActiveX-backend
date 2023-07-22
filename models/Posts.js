@@ -4,7 +4,7 @@ const reactsEnum = require('./ReactsEnum');
 const PostSchema = new mongoose.Schema({
     publisher: {
         type: String,
-        require: [true, `publisher can't be empty`]
+        required: [true, `publisher can't be empty`]
     },
     caption: {
         type: String,
@@ -18,7 +18,7 @@ const PostSchema = new mongoose.Schema({
             message: `A post should contain at least an image or a caption`
         }
     },
-    img: {
+    imgURL: {
         type: String,
         default: ''
     },
@@ -37,7 +37,7 @@ const PostSchema = new mongoose.Schema({
     },
     publishDate: {
         type: Date,
-        default: Date.now
+        default: () => new Date()
     }
 });
 // Define a virtual field for the total post points

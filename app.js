@@ -5,14 +5,16 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cloudinaryLib = require("./lib/cloudinary_CDN_lib");
 const cors = require("cors");
+require('dotenv').config();
 
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
 const postsRouter = require("./routes/posts");
 const mongoLib = require("./lib/mongoDBLib");
 const feedRouter = require("./routes/feed");
+const { authenticate } = require('./authentication/authenticate');
 
-mongoLib.connectToMongo().then(() => {});
+mongoLib.connectToMongo().then(() => { });
 
 const app = express();
 cloudinaryLib.configCloudinary();
@@ -27,15 +29,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(cors());
+app.use(cookieParser)
 app.use("/", indexRouter);
 app.use("/upload", async (req, res, next) => {
   const result = await cloudinaryLib.uploadImage("img.png");
   res.send({ imgId: result });
 });
 
-app.use("/users", usersRouter);
-app.use("/posts", postsRouter);
-app.use("/feed", postsRouter);
+app.use("/users", authenticate, usersRouter);
+app.use("/posts", authenticate, postsRouter);
+app.use("/feed", authenticate, feedRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -50,7 +53,7 @@ app.use(function (err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.json(err) ;
+  res.json(err);
 });
 
 module.exports = app;

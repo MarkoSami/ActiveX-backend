@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
 const UserSchema = new mongoose.Schema({
     userName: {
@@ -14,6 +15,18 @@ const UserSchema = new mongoose.Schema({
             },
             message: 'User name must only contain letters, numbers, and underscores.'
         }
+    },
+    firstName: {
+        type: String,
+        required: [true, `First name is required`],
+        min: [2, `First name can't be less than two charachters `],
+        max: [15, `First name is too long`]
+    },
+    lastName: {
+        type: String,
+        required: [true, `Last name is required`],
+        min: [2, `Last name can't be less than two charachters `],
+        max: [15, `Last name is too long`]
     },
     password: {
         type: String,
@@ -60,6 +73,29 @@ const UserSchema = new mongoose.Schema({
     }
 
 });
+
+
+// hashing the password before saving
+UserSchema.pre('save', async (next) => {
+    if (!this.isModified('password')) {
+        return next();
+    }
+    try {
+        // Generate a salt to hash the password
+        const salt = await bcrypt.genSalt(10);
+
+        // Hash the password with the generated salt
+        const hashedPassword = await bcrypt.hash(this.password, salt);
+
+        // Replace the plain text password with the hashed password
+        this.password = hashedPassword;
+
+        // Continue saving the user document
+        next();
+    } catch (error) {
+        return next(error);
+    }
+})
 
 
 UserSchema.set('_id', false);
