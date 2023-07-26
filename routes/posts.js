@@ -1,12 +1,11 @@
 var express = require('express');
 var router = express.Router();
 const Post = require('../models/Posts');
-
 router
     .get('/', async (req, res, next) => {
         try {
             const posts = await Post.find({});
-            res.status = 200;
+            res.statusCode = 200;
             res.contentType = 'application/json';
             res.json(posts);
         } catch (err) {

@@ -8,13 +8,10 @@ router
   .get('/', async (req, res, next) => {
     try {
       const users = await User.find({}).select('-password -feedOffset -commentOffset -friendRequestsOffset');
-      res.status = 200;
+      res.statusCode = 200;
       res.contentType = 'application/json';
       res.json(users);
     } catch (err) {
-      res.statusCode = 500;
-      res.contentType = 'application/json';
-      res.json(err + `internal server error`);
       next(err);
     }
   })
@@ -25,14 +22,15 @@ router
       res.statusCode = 200;
       res.json(result);
     } catch (err) {
-      res.statusCode = 500;
-      res.contentType = 'application/json';
-      res.json(err + `internal server error`);
-      next(err);
+      // res.json(`err`);
+      console.log(err);
+      res.json({err})
+
+      // next(err);
     }
   })
   .put('/', async (req, res, next) => {
-    res.status = 403;
+    res.statusCode = 403;
     res.json(`PUT request is not allowed on this URL: /users`);
   })
   .delete('/', async (req, res, next) => {
@@ -40,29 +38,24 @@ router
       const result = await User.deleteMany();
       res.json(result);
     } catch (err) {
-      res.statusCode = 500;
-      res.contentType = 'application/json';
-      res.json(err + `internal server error`);
+      next(err);
     }
   })
 
 // handling HTTP requests on the '/users/:id' gateway
 router
-  .get('/:id', async (req, res, next) => {
+  .get('/:userName', async (req, res, next) => {
     try {
-      const userId = req.params.id;
-      const users = await User.findOne({ id }).select('-password');
-      res.status = 200;
+      const userName = req.params.userName;
+      const users = await User.findOne({ userName }).select('-password -feedOffset -commentOffset -friendRequestsOffset');
+      res.statusCode = 200;
       res.contentType = 'application/json';
       res.json(users);
     } catch (err) {
-      res.statusCode = 500;
-      res.contentType = 'application/json';
-      res.json(err + `internal server error`);
       next(err);
     }
   })
-  .post('/:id', async (req, res, next) => {
+  .post('/:userName', async (req, res, next) => {
     res.statusCode = 403;
     res.json(`POST requests is not allowed on this URL: /users/:id`);
   })
@@ -71,20 +64,15 @@ router
       const result = User.updateOne({ id });
       res.json(result);
     } catch (err) {
-      res.statusCode = 500;
-      res.contentType = 'application/json';
-      res.json(err + `internal server error`);
       next(err);
     }
   })
-  .delete('/:id', async (req, res, next) => {
+  .delete('/:userName', async (req, res, next) => {
     try {
-      const result = User.deleteOne({ id });
+      const userName = req.body.userName;
+      const result = User.deleteOne({ userName });
       res.json(result);
     } catch (err) {
-      res.statusCode = 500;
-      res.contentType = 'application/json';
-      res.json(err + `internal server error`);
       next(err);
     }
   })

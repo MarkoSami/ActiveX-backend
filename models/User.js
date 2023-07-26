@@ -76,7 +76,7 @@ const UserSchema = new mongoose.Schema({
 
 
 // hashing the password before saving
-UserSchema.pre('save', async (next) => {
+UserSchema.pre('save', async function (next)  {
     if (!this.isModified('password')) {
         return next();
     }
@@ -96,9 +96,6 @@ UserSchema.pre('save', async (next) => {
         return next(error);
     }
 })
-
-
-UserSchema.set('_id', false);
 
 const User = mongoose.model('User', UserSchema);
 module.exports = User;
