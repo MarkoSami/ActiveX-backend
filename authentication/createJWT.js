@@ -6,9 +6,11 @@ exports.createJWT = async(userName)=>{
         const JWT = await jwt.sign({
             userName,
           },process.env.SECRET_KEY , { expiresIn: '24h' });
+          return JWT;
     }catch(err){
+        console.log(err);
         return next(err);
     }
-    return JWT;
+
     
 }

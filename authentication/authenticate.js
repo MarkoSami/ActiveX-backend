@@ -6,6 +6,7 @@ const User = require('../models/User');
 const authenticate = async (req, res, next) => {
     const cookies = req.cookies;
     if (!('token' in cookies)) {
+        console.log(cookies);
         res.status(401).json({ message: `Unauthorized please login.` });
         return;
     }

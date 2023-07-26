@@ -19,7 +19,9 @@ router.post('/',async (req,res,next)=>{
             describtion
         });
         res.cookie('token',createJWT(createdUser.userName),{ maxAge: 24*60*60, httpOnly: true });
+        res.json(createdUser)
     }catch(err){
+        console.log(err);
         next(err);
     }
 
