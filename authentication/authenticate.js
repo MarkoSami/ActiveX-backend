@@ -10,6 +10,7 @@ const authenticate = async (req, res, next) => {
         res.status(401).json({ message: `Unauthorized please login.` });
         return;
     }
+    const token = cookies['token'];
     const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
     if (!decodedToken.userName) {
         return res.status(400).json({ error: 'Invalid token: userName is missing.' });
