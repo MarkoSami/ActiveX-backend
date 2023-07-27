@@ -63,13 +63,14 @@ router
       res.status(400).json({message: `The request has no body.`});
       return next();
     }
-    const {firstName,lastName,userDescription,imgURL} = res.body;
+    const {firstName,lastName,userDescription,imgURL,coverURL} = res.body;
     try {
       const result = User.findByIdAndUpdate({ id },{
         firstName,
         lastName,
         userDescription,
-        imgURL
+        imgURL,
+        coverURL
       },{new: true});
       res.json(result);
     } catch (err) {
@@ -87,5 +88,19 @@ router
     }
   })
 
+
+  // router
+  // .get('/userName/postId',async(req,res,next)=>{
+  //   req.params
+  // })
+  // .post('/userName/postId',async(req,res,next)=>{
+    
+  // })
+  // .put('/userName/postId',async(req,res,next)=>{
+    
+  // })
+  // .delete('/userName/postId',async(req,res,next)=>{
+    
+  // })
 
 module.exports = router;
