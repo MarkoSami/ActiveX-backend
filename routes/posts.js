@@ -1,6 +1,8 @@
-var express = require('express');
-var router = express.Router();
+
+const express = require('express');
+const router = express.Router();
 const Post = require('../models/Posts');
+
 router
     .get('/', async (req, res, next) => {
         try {
@@ -45,10 +47,10 @@ router
 
 
 router
-    .get('/:id', async (req, res, next) => {
+    .get('/:postID', async (req, res, next) => {
         try {
             const postId = req.params.id;
-            const post = await Post.findById(postId);
+            const post = await Post.findById(postID);
             if (!post) {
                 res.status(404).json({ message: 'Post not found' });
                 return;
@@ -59,13 +61,17 @@ router
             next(err);
         }
     })
-    .post('/:id', async (req, res, next) => {
+    .post('/:postID', async (req, res, next) => {
         res.status(403).json({ message: 'POST requests are not allowed on this URL: /posts/:id' });
     })
-    .put('/:id', async (req, res, next) => {
+    .put('/:postID', async (req, res, next) => {
         try {
-            const postId = req.params.id;
-            const { body } = req;
+            if(!req.body || !req.params || req.params.postID){
+                res.status(400).json({message: `The request has no body.`});
+                return next();
+            }
+            const postId = req.params.postID;
+            const { caption,mediaURL}= req.body;
             const post = await Post.findByIdAndUpdate(postId, body, { new: true });
             if (!post) {
                 res.status(404).json({ message: 'Post not found' });
@@ -77,7 +83,7 @@ router
             next(err);
         }
     })
-    .delete('/:id', async (req, res, next) => {
+    .delete('/:postID', async (req, res, next) => {
         try {
             const postId = req.params.id;
             const post = await Post.findByIdAndDelete(postId);

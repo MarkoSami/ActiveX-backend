@@ -59,9 +59,19 @@ router
     res.statusCode = 403;
     res.json(`POST requests is not allowed on this URL: /users/:id`);
   })
-  .put('/:id', async (req, res, next) => {
+  .put('/:userName', async (req, res, next) => {
+    if(!req.body || !req.params || req.params.userName){
+      res.status(400).json({message: `The request has no body.`});
+      return next();
+    }
+    const {firstName,lastName,userDescription,imgURL} = res.body;
     try {
-      const result = User.updateOne({ id });
+      const result = User.findByIdAndUpdate({ id },{
+        firstName,
+        lastName,
+        userDescription,
+        imgURL
+      },{new: true});
       res.json(result);
     } catch (err) {
       next(err);

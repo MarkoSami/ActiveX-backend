@@ -40,3 +40,44 @@ router
         next(err);
     }
 });
+
+
+router
+.get('/:commentID',async(req,res,next)=>{
+    const commentId = req.params.commentID;
+    if(!req.body || !req.params || req.params.commentID){
+        res.status(400).json({message: `The request has no body.`});
+        return next();
+    }
+    try{
+        const comment = await Comment.findById({}); 
+        res.json(comment);
+    }catch(err){
+        next(err);
+    }
+})
+.post('/:commentID',async(req,res,next)=>{
+ res.status(400).json({err: `POST is not allowed on this path.`})
+    
+})
+.put('/:commentID',async(req,res,next)=>{
+    if(!req.body || !req.params || req.params.commentID){
+        res.status(400).json({message: `The request has no body.`});
+        return next();
+    }
+    const {caption,mediaURL} = req.body;
+    const updatedComment = await Comment.findByIdAndUpdate(commentID,{caption,mediaURL},{new: true});
+    res.json(updatedComment);
+})
+.delete('/:commentID',async(req,res,next)=>{
+    if(!req.body || !req.params || req.params.commentID){
+        res.status(400).json({message: `The request has no body.`});
+        return next();
+    }
+    try{
+        const result = await Comment.findByIdAndDelete();
+        res.json(result);
+    }catch(err){
+        next(err);
+    }
+});
