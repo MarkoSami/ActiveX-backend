@@ -26,6 +26,9 @@ cloudinaryLib.configCloudinary();
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
+app.use(express.static('dist'));
+
+
 app.set("view engine", "jade");
 
 app.use(logger("dev"));
@@ -37,11 +40,12 @@ app.use(cors({
   origin: ['http://localhost:5173'], 
   credentials: true
 }));
-app.use("/", indexRouter);
+// app.use("/", indexRouter);
 // app.use("/upload", async (req, res, next) => {
 //   const result = await cloudinaryLib.uploadImage("img.png");
 //   res.send({ imgId: result });
 // });
+ 
 app.use("/login",loginRouter);
 app.use("/signup",signupRouter);
 app.use("/users", usersRouter);

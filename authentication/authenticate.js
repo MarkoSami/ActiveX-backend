@@ -4,7 +4,16 @@ const User = require('../models/User');
 
 
 const authenticate = async (req, res, next) => {
+    if(req.path == '/#/login'){
+        return next();
+    }
     const cookies = req.cookies;
+    console.log(cookies);
+    if(!cookies){
+        
+        console.log(`user redirected`);
+        return res.redirect('/start')
+    }
     if (!('token' in cookies)) {
         console.log(cookies);
         res.status(401).json({ message: `Unauthorized please login.` });
@@ -19,6 +28,7 @@ const authenticate = async (req, res, next) => {
     if (user) {
         return next();
     }
+    return res.redirect('/start')
     res.status(404).json({ err: `Username not found.` });
 };
 

@@ -37,6 +37,9 @@ router.post("/", async (req, res, next) => {
     next(err);
   }
 })
+ .get('/',(req,res,next)=>{
+
+})
   .all("/", async (req, res, next) => {
     res
       .status(403)
