@@ -13,12 +13,12 @@ const PostSchema = new mongoose.Schema({
         // validate whether the post has at least either a caption or an image
         validate: {
             validator: function () {
-                return this.img || this.caption;
+                return this.mediaURL || this.caption;
             },
             message: `A post should contain at least an image or a caption`
         }
     },
-    imgURL: {
+    mediaURL: {
         type: String,
         default: ''
     },

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const CommentSchema = new mongoose.Schema({
     publisher: {
         type: mongoose.Schema.Types.ObjectId,
-        require: [true, 'publisher can not be empty']
+        required: [true, 'publisher can not be empty']
     },
     caption: {
         type: String,
@@ -12,13 +12,13 @@ const CommentSchema = new mongoose.Schema({
         // validate whether the post has at least either a caption or an image
         validate: {
             validator: function () {
-                return this.img || this.caption;
+                return this.mediaURL || this.caption;
             },
             message: 'You must provide either an image or a caption.'
         }
     },
-    img: {
-        type: URL,
+    mediaURL: {
+        type: String,
         default: ''
     },
     reactCount: {

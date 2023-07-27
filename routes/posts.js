@@ -49,15 +49,15 @@ router
 router
     .get('/:postID', async (req, res, next) => {
         try {
-            const postId = req.params.id;
-            const post = await Post.findById(postID);
+            const postId = req.params.postID;
+            const post = await Post.findById(postId);
             if (!post) {
                 res.status(404).json({ message: 'Post not found' });
                 return;
             }
             res.status(200).json(post);
         } catch (err) {
-            res.status(500).json({ message: 'Internal server error' });
+            console.log(err);
             next(err);
         }
     })
@@ -72,12 +72,12 @@ router
             }
             const postId = req.params.postID;
             const { caption,mediaURL}= req.body;
-            const post = await Post.findByIdAndUpdate(postId, body, { new: true });
-            if (!post) {
+            const updatedPost = await Post.findByIdAndUpdate(postId, {caption,mediaURL}, { new: true });
+            if (!updatedPost) {
                 res.status(404).json({ message: 'Post not found' });
                 return;
             }
-            res.status(200).json(post);
+            res.status(200).json(updatedPost);
         } catch (err) {
             res.status(500).json({ message: 'Internal server error' });
             next(err);
@@ -85,7 +85,7 @@ router
     })
     .delete('/:postID', async (req, res, next) => {
         try {
-            const postId = req.params.id;
+            const postId = req.params.postID;
             const post = await Post.findByIdAndDelete(postId);
             if (!post) {
                 res.status(404).json({ message: 'Post not found' });

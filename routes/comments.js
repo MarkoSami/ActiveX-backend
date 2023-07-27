@@ -1,7 +1,8 @@
+
 const express = require('express');
 const router = express.Router();
 const Comment = require('../models/Comment');
-
+//
 router
 .get('/',async(req,res,next)=>{
     try{
@@ -41,16 +42,16 @@ router
     }
 });
 
-
+// 
 router
 .get('/:commentID',async(req,res,next)=>{
     const commentId = req.params.commentID;
-    if(!req.body || !req.params || req.params.commentID){
+    if(!req.body || !req.params || commentId){
         res.status(400).json({message: `The request has no body.`});
         return next();
     }
     try{
-        const comment = await Comment.findById({}); 
+        const comment = await Comment.findById(commentId); 
         res.json(comment);
     }catch(err){
         next(err);
@@ -61,23 +62,28 @@ router
     
 })
 .put('/:commentID',async(req,res,next)=>{
-    if(!req.body || !req.params || req.params.commentID){
+    const commentId = req.params.commentID;
+    if(!req.body || !req.params || commentId){
         res.status(400).json({message: `The request has no body.`});
         return next();
     }
     const {caption,mediaURL} = req.body;
-    const updatedComment = await Comment.findByIdAndUpdate(commentID,{caption,mediaURL},{new: true});
+    const updatedComment = await Comment.findByIdAndUpdate(commentId,{caption,mediaURL},{new: true});
     res.json(updatedComment);
 })
 .delete('/:commentID',async(req,res,next)=>{
-    if(!req.body || !req.params || req.params.commentID){
+    const commentId = req.params.commentID;
+
+    if(!req.body || !req.params || commentId){
         res.status(400).json({message: `The request has no body.`});
         return next();
     }
     try{
-        const result = await Comment.findByIdAndDelete();
+        const result = await Comment.findByIdAndDelete(commentId);
         res.json(result);
     }catch(err){
         next(err);
     }
 });
+
+module.exports = router;

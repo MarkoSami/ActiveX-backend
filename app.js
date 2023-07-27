@@ -16,6 +16,7 @@ const feedRouter = require("./routes/feed");
 const loginRouter = require('./routes/login');
 const signupRouter = require('./routes/signup');
 const {authenticate} = require('./authentication/authenticate')
+const commentRouter = require('./routes/comments')
 
 // const { authenticate } = require('./authentication/authenticate');
 
@@ -49,7 +50,8 @@ app.use(cors({
 app.use("/login",loginRouter);
 app.use("/signup",signupRouter);
 app.use("/users", usersRouter);
-app.use("/posts", authenticate , postsRouter);
+app.use("/posts" , postsRouter);
+app.use("/comments" , commentRouter);
 app.use("/feed", feedRouter);
 
 // catch 404 and forward to error handler

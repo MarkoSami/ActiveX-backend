@@ -48,10 +48,9 @@ router
     try {
       const userName = req.params.userName;
       const users = await User.findOne({ userName }).select('-password -feedOffset -commentOffset -friendRequestsOffset');
-      res.statusCode = 200;
-      res.contentType = 'application/json';
       res.json(users);
     } catch (err) {
+      console.log(err);
       next(err);
     }
   })
@@ -79,10 +78,11 @@ router
   })
   .delete('/:userName', async (req, res, next) => {
     try {
-      const userName = req.body.userName;
-      const result = User.deleteOne({ userName });
-      res.json(result);
+      const userName = req.params.userName;
+      const result = await User.deleteOne({ userName });
+      res.json({result});
     } catch (err) {
+      console.log(err);
       next(err);
     }
   })
