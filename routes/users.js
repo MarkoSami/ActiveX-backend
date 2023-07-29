@@ -1,4 +1,4 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
 const User = require('../models/User');
 const Post = require('../models/Posts');
@@ -6,17 +6,19 @@ const Post = require('../models/Posts');
 
 // handling HTTP requests on the '/users/' gateway
 router
-  .get('/', async (req, res, next) => {
+  .get("/", async (req, res, next) => {
     try {
-      const users = await User.find({}).select('-password -feedOffset -commentOffset -friendRequestsOffset');
+      const users = await User.find({}).select(
+        "-password -feedOffset -commentOffset -friendRequestsOffset"
+      );
       res.statusCode = 200;
-      res.contentType = 'application/json';
+      res.contentType = "application/json";
       res.json(users);
     } catch (err) {
       next(err);
     }
   })
-  .post('/', async (req, res, next) => {
+  .post("/", async (req, res, next) => {
     const { body } = req;
     try {
       const result = await User.create(body);
@@ -25,37 +27,39 @@ router
     } catch (err) {
       // res.json(`err`);
       console.log(err);
-      res.json({err})
+      res.json({ err });
 
       // next(err);
     }
   })
-  .put('/', async (req, res, next) => {
+  .put("/", async (req, res, next) => {
     res.statusCode = 403;
     res.json(`PUT request is not allowed on this URL: /users`);
   })
-  .delete('/', async (req, res, next) => {
+  .delete("/", async (req, res, next) => {
     try {
       const result = await User.deleteMany();
       res.json(result);
     } catch (err) {
       next(err);
     }
-  })
+  });
 
 // handling HTTP requests on the '/users/:id' gateway
 router
-  .get('/:userName', async (req, res, next) => {
+  .get("/:userName", async (req, res, next) => {
     try {
       const userName = req.params.userName;
-      const users = await User.findOne({ userName }).select('-password -feedOffset -commentOffset -friendRequestsOffset');
+      const users = await User.findOne({ userName }).select(
+        "-password -feedOffset -commentOffset -friendRequestsOffset"
+      );
       res.json(users);
     } catch (err) {
       console.log(err);
       next(err);
     }
   })
-  .post('/:userName', async (req, res, next) => {
+  .post("/:userName", async (req, res, next) => {
     res.statusCode = 403;
     res.json(`POST requests is not allowed on this URL: /users/:id`);
   })
@@ -65,33 +69,27 @@ router
       return next();
     }
     let updateData;
-    if(req.body.userName){
-      updateData.firstName = res.body.firstName;
-    }
-    if(req.body.lastName){
+    if (req.body.lastName) {
       updateData.lastName = req.body.lastName;
     }
-    if(res.body.describtion){
-      updateData.describtion = req.body.describtion;
+    if (req.body.userDescription) {
+      updateData.userDescription = req.body.userDescription;
     }
-    if(res.body.imgURL){
+    if (req.body.imgURL) {
       updateData.imgURL = req.body.imgURL;
     }
-    if(res.body.coverURL){
+    if (req.body.coverURL) {
       updateData.coverURL = req.body.coverURL;
     }
+    const userName = req.params.userName;
+
+    console.log(updateData);
     try {
-      const result = User.findByIdAndUpdate({ id },updateData,{new: true});
+      const result = await User.findOneAndUpdate({ userName }, updateData, {
+        new: true,
+      });
+      console.log(result);
       res.json(result);
-    } catch (err) {
-      next(err);
-    }
-  })
-  .delete('/:userName', async (req, res, next) => {
-    try {
-      const userName = req.params.userName;
-      const result = await User.deleteOne({ userName });
-      res.json({result});
     } catch (err) {
       console.log(err);
       next(err);
@@ -154,5 +152,15 @@ router
   .delete('/:userName/:postId',async(req,res,next)=>{
     
   })
+  .delete("/:userName", async (req, res, next) => {
+    try {
+      const userName = req.params.userName;
+      const result = await User.deleteOne({ userName });
+      res.json({ result });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  });
 
 module.exports = router;
