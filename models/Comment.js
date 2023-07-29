@@ -1,8 +1,9 @@
+
 const mongoose = require('mongoose');
 
 const CommentSchema = new mongoose.Schema({
     publisher: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         required: [true, 'publisher can not be empty']
     },
     caption: {

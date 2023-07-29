@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const User = require('../models/User');
+const Post = require('../models/Posts');
 
 
 // handling HTTP requests on the '/users/' gateway
@@ -59,19 +60,28 @@ router
     res.json(`POST requests is not allowed on this URL: /users/:id`);
   })
   .put('/:userName', async (req, res, next) => {
-    if(!req.body || !req.params || req.params.userName){
+    if(!req.body || !req.params || !req.params.userName){
       res.status(400).json({message: `The request has no body.`});
       return next();
     }
-    const {firstName,lastName,userDescription,imgURL,coverURL} = res.body;
+    let updateData;
+    if(req.body.userName){
+      updateData.firstName = res.body.firstName;
+    }
+    if(req.body.lastName){
+      updateData.lastName = req.body.lastName;
+    }
+    if(res.body.describtion){
+      updateData.describtion = req.body.describtion;
+    }
+    if(res.body.imgURL){
+      updateData.imgURL = req.body.imgURL;
+    }
+    if(res.body.coverURL){
+      updateData.coverURL = req.body.coverURL;
+    }
     try {
-      const result = User.findByIdAndUpdate({ id },{
-        firstName,
-        lastName,
-        userDescription,
-        imgURL,
-        coverURL
-      },{new: true});
+      const result = User.findByIdAndUpdate({ id },updateData,{new: true});
       res.json(result);
     } catch (err) {
       next(err);
@@ -86,21 +96,63 @@ router
       console.log(err);
       next(err);
     }
+  });
+
+
+// handling getting posts of a specific user  by username and user id 
+
+router
+.get('/:userName/posts',async(req,res,next)=>{
+  const userName = req.params.userName;
+  if(!userName){
+    res.status(400).json({err: `wrong Params!`});
+    return next();
+  }
+  try{
+    const targetUser = User.findOne({userName});
+    const userPosts = await Post.find({publisher: targetUser});
+    res.json(userPosts);
+  }catch(err){
+    console.log(err);
+    next(err);
+  }
+})
+.delete('/:userName/posts',async(req,res,next)=>{
+  const userName = req.params.userName;
+  if(!userName){
+    res.status(400).json({err: `wrong Params!`});
+    return next();
+  }
+  try{
+    const targetUser = User.find({userName});
+    const result = await Post.deleteMany({publisher: targetUser});
+    res.json(result);
+  }catch(err){
+    console.log(err);
+    next(err);
+  }
+})
+.all('/:userName/posts',async(req,res,next)=>{
+  res.status(403).json({err: `${req.method} is not allowed in ${req.path}`});
+});
+
+
+// handling getting a specific post of a specific user  by username and user id 
+  router
+  .get('/:userName/:postId',async(req,res,next)=>{
+    const {userName,postId} = req.params;
+    if(!req.params || !userName || !postId){
+      res.status(400).json({message: `Wrong parameters!`});
+      return next();
+    }
+    const post = Post.findById({postId});
+
   })
-
-
-  // router
-  // .get('/userName/postId',async(req,res,next)=>{
-  //   req.params
-  // })
-  // .post('/userName/postId',async(req,res,next)=>{
+  .put('/:userName/:postId',async(req,res,next)=>{
     
-  // })
-  // .put('/userName/postId',async(req,res,next)=>{
+  })
+  .delete('/:userName/:postId',async(req,res,next)=>{
     
-  // })
-  // .delete('/userName/postId',async(req,res,next)=>{
-    
-  // })
+  })
 
 module.exports = router;
