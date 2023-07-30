@@ -123,20 +123,24 @@ router
         }
         const commentData = {};
   if ('publisher' in req.body) {
-    commentData.publisher = publisher;
+    commentData.publisher = req.body.publisher;
   }
   if ('caption' in req.body) {
-    commentData.caption = caption;
+    commentData.caption = req.body.caption;
   }
   if ('mediaURL' in req.body) {
-    commentData.mediaURL = mediaURL;
+    commentData.mediaURL = req.body.mediaURL;
   }
 
         try{
             const newComment = new Comment(commentData);
             await newComment.save();
-            const result = await Post.comments.push(newComment._id);
-            res.json(result);
+            const post = await Post.findById(postId);
+            if(!post){
+                res.status(404).json({err: `Post not found!`})
+            }
+            const result = await post.comments.push(newComment._id);
+            res.json(newComment);
         }catch(err){
             console.log(err);
             next(err);
