@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const Post = require('../models/Posts');
 const Comment = require('../models/Comment');
+const User = require('../models/User');
 
 router
     .get('/', async (req, res, next) => {
@@ -117,7 +118,7 @@ router
     .post('/:postId/comments',async (req,res,next)=>{
         const postId = req.params.postId;
         if(!postId){
-            res.status(404).json({err: `POst not found!`});
+            res.status(404).json({err: `Post not found!`});
             return next();
         }
         const commentData = {};
@@ -133,7 +134,8 @@ router
 
         try{
             const newComment = new Comment(commentData);
-            const result = Post.comments.push(newComment);
+            await newComment.save();
+            const result = await Post.comments.push(newComment._id);
             res.json(result);
         }catch(err){
             console.log(err);
