@@ -8,13 +8,14 @@ const Post = require('../models/Posts');
 router
   .get("/", async (req, res, next) => {
     try {
-      const users = await User.find({}).select(
-        "-password -feedOffset -commentOffset -friendRequestsOffset"
-      );
+        const users = await User.find({}).select(
+          "-password -feedOffset -commentOffset -friendRequestsOffset"
+        );
       res.statusCode = 200;
       res.contentType = "application/json";
       res.json(users);
     } catch (err) {
+      console.log(err);
       next(err);
     }
   })
@@ -108,7 +109,10 @@ router
   }
   try{
     const targetUser = User.findOne({userName});
-    const userPosts = await Post.find({publisher: targetUser});
+    if(!targetUser){
+      res.status(404).json({err: `User not found`})
+    }
+    const userPosts = await Post.find({publisher: userName});
     res.json(userPosts);
   }catch(err){
     console.log(err);
@@ -143,24 +147,144 @@ router
       res.status(400).json({message: `Wrong parameters!`});
       return next();
     }
-    const post = Post.findById({postId});
-
-  })
-  .put('/:userName/:postId',async(req,res,next)=>{
-    
-  })
-  .delete('/:userName/:postId',async(req,res,next)=>{
-    
-  })
-  .delete("/:userName", async (req, res, next) => {
-    try {
-      const userName = req.params.userName;
-      const result = await User.deleteOne({ userName });
-      res.json({ result });
-    } catch (err) {
+    try{
+      const post = await Post.findById({postId});
+      res.json(post);
+    }catch(err){
       console.log(err);
       next(err);
     }
+    
+  })
+  .put('/:userName/:postId',async(req,res,next)=>{
+    const {userName,postId} = req.params;
+    if(!req.params || !userName || !postId){
+      res.status(400).json({message: `Wrong parameters!`});
+      return next();
+    }
+    try{
+      const updatedPost = await Post.findByIdAndUpdate({postId});
+      res.json(updatedPost);
+    }catch(err){
+      console.log(err);
+      next(err);
+    }
+  })
+  .delete('/:userName/:postId',async(req,res,next)=>{
+    const {userName,postId} = req.params;
+    if(!req.params || !userName || !postId){
+      res.status(400).json({message: `Wrong parameters!`});
+      return next();
+    }
+    try{
+      const result = await Post.findByIdAndDelete({postId});
+      res.json(result);
+    }catch(err){
+      console.log(err);
+      next(err);
+    }
+  })
+  .all('/',async(req,res,next)=>{
+    res.status(403).json({err: `${req.method} is not allowed in ${req.path}`})
+  })
+
+  // handling friends of a specific user 
+
+  router
+  .get('/:userName/friends',async (req,res,next)=>{
+    const userName = req.params.userId;
+    const friendUserName = req.body.friendUserName;
+    if(!userId || !friendId){
+      res.status(400).json({err: `wrong parameters`});
+      return next();
+    }
+    try{
+      const user = await User.findOne({userName});
+      const friend = await User.findOne({userName});
+
+    }catch(err){
+
+    }
+
+  })
+  .post('/:userId/friends',async (req,res,next)=>{
+
+  })
+  .delete('/:userId/friends',async (req,res,next)=>{
+
+  })
+  .all('/:userId/friends',async (req,res,next)=>{
+
   });
 
+router
+  .get('/:userName/friends/:friendUserName',async (req,res,next)=>{
+
+  })
+  // handling adding new friend to the friends requests of a specifi user 
+  .post('/:userName/friends/:friendUserName',async (req,res,next)=>{
+    const {userName,friendUserName} = req.params;
+    if(!userName || !friendUserName){
+      res.status(400).json({err:`Wrong parameters!`});
+      return next();
+    }
+    try{
+      const user = await User.findOne({userName});
+      const friend = await User.findOne({friendUserName});
+
+      if(!user || !friend){
+        res.status(404).json({err: `data not found`});
+        return next();
+      }
+      
+      const targetIndex = friend.friendsRequests.findIndex(userName);
+      if(targetIndex !== -1){  // checking if the freind is already requested 
+        res.status(403).json({message: `Friend request already sent!`});
+        return next();
+      }
+      friend.friendsRequests.push(userName);
+      friend.save();
+      res.json({message: `Friend resuest sent!`});
+    }catch(err){
+      console.log(err);
+      next(err);
+    }
+  })
+
+  .put('/:userName/friends/:friendUserName',async (req,res,next)=>{
+
+  })
+
+  .delete('/:userName/friends/:friendUserName',async (req,res,next)=>{
+    const {userName,friendUserName} = req.params;
+    if(!userName || !friendUserName){
+      res.status(400).json({err:`Wrong parameters!`});
+      return next();
+    }
+    try{
+        const user = await User.findByIdAndUpdate(userId, { $pull: { friends: friendUserName } });
+        res.json(user);
+      }catch(err){
+        console.log(err);
+        next(err);
+      }
+  })
+  .all('/:userName/friends/:friendUserName',async (req,res,next)=>{
+
+});
+
+  
+
+
 module.exports = router;
+
+/*
+users/marko/friends/mina  Post
+users/marko/friends/mina  Get
+users/marko/friends/mina  Delete
+users/marko/friends/mina  Put
+*/
+
+/*
+
+*/
