@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const reactsEnum = require('./ReactsEnum');
+const Comment = require('./Comment');
 
 const PostSchema = new mongoose.Schema({
     publisher: {
@@ -17,7 +18,7 @@ const PostSchema = new mongoose.Schema({
             },
             message: `A post should contain at least an image or a caption`
         }
-    },
+    },  
     mediaURL: {
         type: String,
         default: ''
@@ -38,8 +39,16 @@ const PostSchema = new mongoose.Schema({
     publishDate: {
         type: Date,
         default: () => new Date()
-    }
+    },
+    comments: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Comment', // Reference to the Comment model
+        },
+      ]
 });
+
+
 // Define a virtual field for the total post points
 PostSchema.virtual('postPoints').get(function () {
     let total = 0;

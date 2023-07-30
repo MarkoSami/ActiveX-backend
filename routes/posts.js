@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const Post = require('../models/Posts');
+const Comment = require('../models/Comment');
 
 router
     .get('/', async (req, res, next) => {
@@ -97,5 +98,65 @@ router
             next(err);
         }
     });
+
+
+    router.get('/:postId/comments',async (req,res,next)=>{
+        const postId = req.params.postId;
+        if(!postId){
+            res.status(404).json({err: `POst not found!`});
+            return next();
+        }
+        try{
+            const comments = await Comment.find({});
+            res.json(comments);
+        }catch(err){
+            console.log(err);
+            next(err);
+        }
+    })
+    .post('/:postId/comments',async (req,res,next)=>{
+        const postId = req.params.postId;
+        if(!postId){
+            res.status(404).json({err: `POst not found!`});
+            return next();
+        }
+        const commentData = {};
+  if ('publisher' in req.body) {
+    commentData.publisher = publisher;
+  }
+  if ('caption' in req.body) {
+    commentData.caption = caption;
+  }
+  if ('mediaURL' in req.body) {
+    commentData.mediaURL = mediaURL;
+  }
+
+        try{
+            const newComment = new Comment(commentData);
+            const result = Post.comments.push(newComment);
+            res.json(result);
+        }catch(err){
+            console.log(err);
+            next(err);
+        }   
+    })
+    .put('/:postId/comments',async (req,res,next)=>{
+        res.status(403).json({err: `Put is not allowed on this path`});
+    })
+    .delete('/:postId/comments',async (req,res,next)=>{
+        const postId = req.params.postId;
+        if(!postId){
+            res.status(404).json({err: `POst not found!`});
+            return next();
+        }
+        try{
+            const result = await Comment.deleteMany({});
+            res.json(result);
+        }catch(err){
+            console.log(err);
+            next(err);
+        }
+    });
+
 
 module.exports = router;
