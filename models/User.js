@@ -32,7 +32,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, `Password is required`],
     minlength: [8, `Password can't be less than 8 charachters`],
-    maxlength: [20, `Password can't exceed 20 charachters`],
+    maxlength: [100, `Password can't exceed 100 charachters`],
   },
   userDescription: {
     type: String,
@@ -41,14 +41,12 @@ const UserSchema = new mongoose.Schema({
   },
   friends: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String
     },
   ],
   friendRequests: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String
     },
   ],
   imgURL: {

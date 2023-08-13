@@ -12,7 +12,7 @@ const authenticate = async (req, res, next) => {
     if(!cookies){
         
         console.log(`user redirected`);
-        return res.redirect('/start')
+        return res.redirect('/login')
     }
     if (!('token' in cookies)) {
         console.log(cookies);
@@ -28,7 +28,7 @@ const authenticate = async (req, res, next) => {
     if (user) {
         return next();
     }
-    return res.redirect('/start')
+    return res.redirect('/#/login')
     res.status(404).json({ err: `Username not found.` });
 };
 
