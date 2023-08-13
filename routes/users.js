@@ -166,6 +166,10 @@ router
       res.status(400).json((!userName)? `Wrong parameters!` : `body is misiing data!`);
       return;
     }
+    if(userName === friendUserName){
+      res.status(403).json({err: `User can't send a friend request to himself!`});
+      return;
+    }
     try{
       const user = await User.findOne({userName});
       const friend = await User.findOne({userName: friendUserName});
@@ -245,6 +249,7 @@ router
       next(err);
     }
   })
+
   // accepting a friend request 
   .post('/:userName/friends',async(req,res,next)=>{
     const userName = req.params.userName;
@@ -255,6 +260,12 @@ router
       res.status(400).json({err: `wrong parameters!`});
       return next();
     }
+    
+    if(userName === friendUserName){
+      res.status(403).json({err: `User can't be friend of  himself!`});
+      return;
+    }
+
     try{
       const user = await User.findOne({userName});
       const friend = await User.findOne({userName: friendUserName});
