@@ -238,6 +238,53 @@ router
 
 
 
+  router.delete('/:userName/friendRequests/friendUserName',async ()=>{
+    const {userName,friendUserName} = req.params;
+    // checking for missing information
+    if(!userName || !friendUserName){
+      res.status(400).json({err: `wrong parameters!`});
+      return next();
+    }
+    try{
+      const user = await User.findOne({userName});
+
+      // checking for invalid username
+      if(!user){
+        res.status(404).json({err: `User not found!`})
+        return;
+      }
+
+      // checking for invalid freind username
+      const friend = await User.findOne({userName: friendUserName});
+      if(!friend){
+        res.status(404).json({err: `the friend was not found!`});
+        return;
+      }
+
+      // checking foe the exstance of the friend in the current user friend list
+      if(!user.friendRequests.find((friend)=> friend === friendUserName)){
+        res.status(404).json({err: `The user wanted to be removed is not in  friend requests list!`});
+        return ;
+      }
+      
+      // removing friend user name from current user's freinds list 
+      user.friendRequests = await user.friendRequests.filter((friend)=>friend !== friendUserName);
+      await user.save();
+
+      // removing the current user username from current freind's freinds list 
+      friend.friendRequests = await  friend.friendRequests.filter((friend)=>friend !== userName);
+      await friend.save();
+
+      res.json({message: `Friend request is removed successfully!`});
+      
+    }catch(err){
+      console.log(err);
+      next(err);
+    }
+  })
+
+
+
   // handling user friends gateway
   router
   // getting all friends of a user 
@@ -383,17 +430,17 @@ router
       }
 
       // checking foe the exstance of the friend in the current user friend list
-      if(!user.friends.find((friend)=> friend.userName === friendUserName)){
+      if(!user.friends.find((friend)=> friend === friendUserName)){
         res.status(404).json({err: `The user wanted to be removed is not a friend!`});
         return ;
       }
       
       // removing friend user name from current user's freinds list 
-      user.friends = await user.friends.filter((friend)=>friend.userName !== friendUserName);
+      user.friends = await user.friends.filter((friend)=>friend !== friendUserName);
       await user.save();
 
       // removing the current user username from current freind's freinds list 
-      friend.friends = await  friend.friends.filter((friend)=>friend.userName !== userName);
+      friend.friends = await  friend.friends.filter((friend)=>friend !== userName);
       await friend.save();
 
       res.json({message: `Friend is removed successfully!`});
