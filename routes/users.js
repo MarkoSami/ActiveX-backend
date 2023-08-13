@@ -9,11 +9,20 @@ router
   .get("/", async (req, res, next) => {
     try {
         const users = await User.find({}).select(
-          "-password -feedOffset -commentOffset -friendRequestsOffset"
-        );
+            {
+              password: 0,
+              feedOffset: 0,
+              commentsOffset: 0,
+              friendRequestsOffset: 0,
+              __v: 0
+            }
+          );
       res.statusCode = 200;
       res.contentType = "application/json";
-      res.json(users);
+      res.json({
+        count: users.length,
+        users
+      });
     } catch (err) {
       console.log(err);
       next(err);
