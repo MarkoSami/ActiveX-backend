@@ -4,18 +4,17 @@ const router = express.Router();
 const Post = require('../models/Posts');
 const Comment = require('../models/Comment');
 const User = require('../models/User');
+const { route } = require('./comments');
 
 router
     .get('/', async (req, res, next) => {
         try {
             const posts = await Post.find({});
-            res.statusCode = 200;
-            res.contentType = 'application/json';
-            res.json(posts);
+            res.status(200).json(posts);
         } catch (err) {
+            console.log(err);
             res.statusCode = 500;
             res.contentType = 'application/json';
-            res.json(err + `internal server error`);
             next(err);
         }
     })
@@ -68,9 +67,9 @@ router
     })
     .put('/:postID', async (req, res, next) => {
         try {
-            if(!req.body || !req.params || req.params.postID){
+            if(!req.body || !req.params || !req.params.postID){
                 res.status(400).json({message: `The request has no body.`});
-                return next();
+                return ;
             }
             const postId = req.params.postID;
             const { caption,mediaURL}= req.body;
@@ -140,6 +139,7 @@ router
                 res.status(404).json({err: `Post not found!`})
             }
             const result = await post.comments.push(newComment._id);
+            await post.save();
             res.json(newComment);
         }catch(err){
             console.log(err);
@@ -163,6 +163,24 @@ router
             next(err);
         }
     });
+
+
+// to get a specific post reacts
+router.get("/:postID/reacts",async (req,res,next)=>{
+  const postID  = req.params.postID;
+  try{
+    const post = await Post.findById(postID);  
+    if(!post){
+        res.status(404).json({err: `Post not found!`});
+        return;
+    }
+    const reacts = post.reactsCount;
+    res.json(reacts);
+  }catch(err){
+    console.log(err);
+    next(err);
+  }  
+});
 
 
 module.exports = router;

@@ -15,7 +15,7 @@ router
 .post('/',async(req,res,next)=>{
     if(!req.body){
         res.status(400).json({message: `The request has no body.`});
-        return next();
+        return ;
     }
     const {publisher,caption,mediaURL} = req.body;
     try{
@@ -46,14 +46,15 @@ router
 router
 .get('/:commentID',async(req,res,next)=>{
     const commentId = req.params.commentID;
-    if(!req.body || !req.params || commentId){
-        res.status(400).json({message: `The request has no body.`});
-        return next();
+    if(!req.body || !req.params || !commentId){
+        res.status(400).json({err: `Wrong parameters!.`});
+        return ;
     }
     try{
-        const comment = await Comment.findById(commentId); 
+        const comment = await Comment.findById({_id: commentId}); 
         res.json(comment);
     }catch(err){
+        console.log(err);
         next(err);
     }
 })

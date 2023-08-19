@@ -76,9 +76,12 @@ router
   .put('/:userName', async (req, res, next) => {
     if(!req.body || !req.params || !req.params.userName){
       res.status(400).json({message: `The request has no body.`});
-      return next();
+      return ;
     }
-    let updateData;
+    let updateData = {} ;
+    if (req.body.firstName) {
+      updateData.firstName = req.body.firstName;
+    }
     if (req.body.lastName) {
       updateData.lastName = req.body.lastName;
     }
@@ -96,7 +99,7 @@ router
     console.log(updateData);
     try {
       const result = await User.findOneAndUpdate({ userName }, updateData, {
-        new: true,
+        new: true
       });
       console.log(result);
       res.json(result);
@@ -238,7 +241,7 @@ router
 
 
 
-  router.delete('/:userName/friendRequests/friendUserName',async ()=>{
+  router.delete('/:userName/friendRequests/:friendUserName',async (req,res,next)=>{
     const {userName,friendUserName} = req.params;
     // checking for missing information
     if(!userName || !friendUserName){

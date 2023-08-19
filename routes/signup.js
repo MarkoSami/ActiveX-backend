@@ -9,14 +9,15 @@ router.post('/',async (req,res,next)=>{
         res.status(400).json({err: `request does not contain a body`});
         return;   
     }
-    const {userName,password,firstName,lastName,describtion} = req.body;
+    const {userName,password,firstName,lastName,describtion,imgURL} = req.body;
     try{
         const createdUser = await User.create({
             userName,
             password,
             firstName,
             lastName,
-            describtion
+            describtion,
+            imgURL
         });
         res.cookie('token',createJWT(createdUser.userName),{
              maxAge: 24*60*60, 
