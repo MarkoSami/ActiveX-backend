@@ -1,6 +1,7 @@
         const mongoose = require('mongoose');
         const reactsEnum = require('./ReactsEnum');
         const Comment = require('./Comment');
+        const {ReactSchema} = require('./React');
 
         const PostSchema = new mongoose.Schema({
             publisher: {
@@ -31,11 +32,7 @@
                 }],
                 default: []
             },
-            reactsCount: {
-                type: Map,
-                of: Number,
-                default: new Map()
-            },            
+            reacts: [ReactSchema],            
             publishDate: {
                 type: Date,
                 default: () => new Date()
@@ -50,14 +47,14 @@
         );
 
         
-        // Define a virtual field for the total post points
-        PostSchema.virtual('postPoints').get(function () {
-            let total = 0;
-            for (const [emoji, count] of this.reactsCount) {
-                total += count * reactsEnum[emoji];
-            }
-            return total;
-        });
+        // // Define a virtual field for the total post points
+        // PostSchema.virtual('postPoints').get(function () {
+        //     let total = 0;
+        //     for (const [emoji, count] of this.reactsCount) {
+        //         total += count * reactsEnum[emoji];
+        //     }
+        //     return total;
+        // });
 
 
         const Post = mongoose.model('Post', PostSchema);

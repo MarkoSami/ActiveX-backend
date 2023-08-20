@@ -3,9 +3,8 @@ const express = require('express');
 const router = express.Router();
 const Post = require('../models/Posts');
 const Comment = require('../models/Comment');
-const User = require('../models/User');
-const { route } = require('./comments');
-
+const {React,ReactSchema} = require('../models/React');
+const { default: mongoose } = require('mongoose');
 router
     .get('/', async (req, res, next) => {
         try {
@@ -24,9 +23,7 @@ router
             const result = await Post.create(body);
             res.json(result);
         } catch (err) {
-            // res.statusCode = 500;
-            // res.contentType = 'application/json';
-            // res.json(err + `internal server error`);
+            console.log(err);
             next(err);
         }
     })
@@ -167,19 +164,69 @@ router
 
 // to get a specific post reacts
 router.get("/:postID/reacts",async (req,res,next)=>{
-  const postID  = req.params.postID;
-  try{
-    const post = await Post.findById(postID);  
-    if(!post){
-        res.status(404).json({err: `Post not found!`});
-        return;
-    }
-    const reacts = post.reactsCount;
-    res.json(reacts);
+    try{
+        // if(!post){
+            //     res.status(404).json({err: `Post not found!`});
+            //     return;
+            // }
+            
+            const postID  = new  mongoose.Types.ObjectId(req.params.postID);
+            const post = await Post.findById(postID);  
+            if(!post){
+                res.status(404).json({err: `Post not found!`});
+                return;
+            }
+            console.log(post.reacts);
+            const reactsData = {};
+            const reacts = await Post.aggregate([
+                { $match: { _id: postID} },
+                { $unwind: '$reacts' }, // Unwind the reacts array to treat each react as a separate document
+                { $group: { _id: '$reacts.reactType', count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $project: { reactType: '$_id', reactCount: '$count' ,_id: 0} }
+            ]).exec();
+            reactsData.count = post.reacts.length;
+            reactsData.reacts = reacts;
+
+    console.log(reactsData);
+    // reactsData.reacts = post.
+     res.json(reactsData);
   }catch(err){
     console.log(err);
     next(err);
   }  
+})
+.post("/:postID/reacts",async (req,res,next)=>{
+    const postID = req.params.postID;
+    if(!req.body){
+        res.status(400).json({err: `Missing body!`});
+        return;
+    }
+    if(!req.body.publisher || !req.body.reactType){
+        res.status(400).json({err: `Missing data!`});
+        return;
+    }
+    const {publisher, reactType} = req.body;
+    try{
+        const newReact = new React({publisher,reactType});
+        await Post.updateOne({_id: postID},{$push: {reacts: newReact}});
+        res.json({message: `Added a new React successfully!`,reactData: newReact});
+    }catch(err){
+        console.log(err);
+        next(err);
+    }
+})
+.delete("/:postID/reacts",async (req,res,next)=>{
+    try{
+        const {postID} = req.params; 
+        const post = await Post.findById(postID);
+        post.reacts = [];
+        await post.save();
+        res.status(200).json({message: `All Reacts has been deleted successfully!`});
+    }catch(err){
+        coneole.log(err);
+        next();
+    }
 });
 
 

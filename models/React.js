@@ -4,11 +4,12 @@ const mongoose = require('mongoose');
 const ReactSchema = new mongoose.Schema({
     publisher: {
         type: mongoose.Schema.Types.ObjectId,
-        require: [true, 'publisher can not be empty']
+        required: [true, 'publisher can not be empty']
     },
-    type: {
+    reactType: {
         type: String,
         enum: ['love', 'amazing', 'thunder', 'dislike', 'skull', 'shit'],
+        required: true
     },
     reactDate: {
         type: Date,
@@ -19,4 +20,4 @@ const ReactSchema = new mongoose.Schema({
 
 
 const React = mongoose.model('React', ReactSchema);
-module.exports = React;
+module.exports = {React,ReactSchema};
