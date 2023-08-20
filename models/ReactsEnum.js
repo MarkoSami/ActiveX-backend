@@ -1,8 +1,8 @@
 exports.reactsEnum = {
-    love: 10,
-    amazing: 30,
-    thunder: 50,
-    dislike: -10,
-    skull: -30,
-    shit: -50
+    Love: 10,
+    Amazing: 30,
+    Thunder: 50,
+    Dislike: -10,
+    Skull: -30,
+    Shit: -50
 };

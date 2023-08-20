@@ -10,6 +10,7 @@ const debug = require('debug')('application:server');
 const http = require('http');
 const { v4: uuidv4 } = require('uuid');
 const utils = require('../lib/utils');
+const mongoose = require('mongoose')
 
 
 /**
@@ -117,6 +118,10 @@ io.on("connection", (socket) => {
     socket.to(data.messageData.room).emit("message_received", data.messageData);
     // console.log(`Broadcasted a message to all the clients... message: ${data.messageData.room}`);
   });
+
+
+  // Notifications
+  
 
   socket.on("load_feed", () => {
     // to do

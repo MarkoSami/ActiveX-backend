@@ -8,7 +8,7 @@ const ReactSchema = new mongoose.Schema({
     },
     reactType: {
         type: String,
-        enum: ['love', 'amazing', 'thunder', 'dislike', 'skull', 'shit'],
+        enum: ['Love', 'Amazing', 'Thunder', 'Dislike', 'Skull', 'Shit'],
         required: true
     },
     reactDate: {
