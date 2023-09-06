@@ -109,11 +109,41 @@ router
                 res.status(404).json({err: `Post not found`});
                 return;
             }
-            const comments = await Comment.find({
-                _id:{$in: post.comments} 
-            }).select('-__v');
-            
+            const comments = await Comment.aggregate([
+                {
+                    $match: {
+                        _id: {$in: post.comments}
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "publisher",
+                        foreignField: 'userName',
+                        as: "publisherData",
+                        pipeline: [
+                            {
+                                $project:{
+                                    userName: 1,
+                                    firstName: 1,
+                                    lastName: 1,
+                                    imgURL: 1
+                                }   
+                            }
+                        ]
+                    }
+                },
+                {
+                    $project: {
+                        publisher: 0,
+                        _id: 0,
+                        __v: 0
+                    }
+                }
+
+            ]);
             res.json(comments);
+
         }catch(err){
             console.log(err);
             next(err);
