@@ -1,6 +1,6 @@
         const mongoose = require('mongoose');
         const reactsEnum = require('./ReactsEnum');
-        const Comment = require('./Comment');
+        const {CommentSchema} = require('./Comment');
         const {ReactSchema} = require('./React');
 
         const PostSchema = new mongoose.Schema({
@@ -32,7 +32,8 @@
                 }],
                 default: []
             },
-            reacts: [ReactSchema],            
+            reacts: [ReactSchema],     
+            comments: [CommentSchema],       
             publishDate: {
                 type: Date,
                 default: () => new Date()

@@ -113,24 +113,113 @@ router
 // handling getting posts of a specific user  by username and user id 
 
 router
-.get('/:userName/posts',async(req,res,next)=>{
-  const userName = req.params.userName;
-  if(!userName){
-    res.status(400).json({err: `wrong Params!`});
-    return next();
+.get('/:userName/posts', async (req, res, next) => {
+  console.log(`------>entered the special`);
+  if (!req.query.req) {
+    return;
   }
-  try{
-    const targetUser = User.findOne({userName});
-    if(!targetUser){
-      res.status(404).json({err: `User not found`})
-    }
-    const userPosts = await Post.find({publisher: userName});
-    res.json(userPosts);
-  }catch(err){
+  try {
+    const posts = await Post.aggregate([
+      {
+        $match: { publisher: req.params.userName }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'publisher',
+          foreignField: 'userName',
+          pipeline: [
+            { $project: { userName: 1, firstName: 1, lastName: 1, imgURL: 1 } }
+          ],
+          as: 'publisherData'
+        }
+      },
+      {
+        $lookup: {
+          from: 'comments',
+          localField: 'comments',
+          foreignField: '_id',
+          pipeline: [
+            { $limit: 10 },
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'publisher',
+                foreignField: 'userName',
+                pipeline: [
+                  { $project: { userName: 1, firstName: 1, lastName: 1, imgURL: 1, _id: 0 } }
+                ],
+                as: 'commentPublisherData'
+              }
+            },
+            { $project: { publisher: 0, _id: 0, __v: 0 } }
+          ],
+          as: 'initialComments'
+        }
+      },
+      {
+        $addFields: {
+          userReact: {
+            $arrayElemAt: [
+              {
+                $map: {
+                  input: {
+                    $filter: {
+                      input: "$reacts",
+                      as: "react",
+                      cond: {
+                        $eq: ["$$react.publisher", req.query.req]
+                      }
+                    }
+                  },
+                  as: "react",
+                  in: "$$react.reactType" // Correctly reference the field name as "reactType"
+                }
+              },
+              0 // Get the first element of the resulting array
+            ]
+          }
+        }
+      }
+      
+      ,
+      {
+        $project: {
+          labels: 0,
+          comments: 0,
+          __v: 0,
+          reacts: 0,
+          publisher: 0
+        }
+      }
+    ]);
+
+    console.log(posts);
+    res.status(200).json(posts);
+  } catch (err) {
     console.log(err);
     next(err);
   }
 })
+
+// .get('/:userName/posts',async(req,res,next)=>{
+//   const userName = req.params.userName;
+//   if(!userName){
+//     res.status(400).json({err: `wrong Params!`});
+//     return next();
+//   }
+//   try{
+//     const targetUser = User.findOne({userName});
+//     if(!targetUser){
+//       res.status(404).json({err: `User not found`})
+//     }
+//     const userPosts = await Post.find({publisher: userName});
+//     res.json(userPosts);
+//   }catch(err){
+//     console.log(err);
+//     next(err);
+//   }
+// })
 .delete('/:userName/posts',async(req,res,next)=>{
   const userName = req.params.userName;
   if(!userName){

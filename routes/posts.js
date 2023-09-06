@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const Post = require('../models/Posts');
-const Comment = require('../models/Comment');
+const {Comment,CommentSchema} = require('../models/Comment');
 const {React,ReactSchema} = require('../models/React');
 const { default: mongoose } = require('mongoose');
 router
@@ -165,11 +165,6 @@ router
 // to get a specific post reacts
 router.get("/:postID/reacts",async (req,res,next)=>{
     try{
-        // if(!post){
-            //     res.status(404).json({err: `Post not found!`});
-            //     return;
-            // }
-            
             const postID  = new  mongoose.Types.ObjectId(req.params.postID);
             const post = await Post.findById(postID);  
             if(!post){
@@ -180,14 +175,13 @@ router.get("/:postID/reacts",async (req,res,next)=>{
             const reactsData = {};
             const reacts = await Post.aggregate([
                 { $match: { _id: postID} },
-                { $unwind: '$reacts' }, // Unwind the reacts array to treat each react as a separate document
+                { $unwind: '$reacts' }, 
                 { $group: { _id: '$reacts.reactType', count: { $sum: 1 } } },
                 { $sort: { count: -1 } },
                 { $project: { reactType: '$_id', reactCount: '$count' ,_id: 0} }
             ]).exec();
             reactsData.count = post.reacts.length;
             reactsData.reacts = reacts;
-
     console.log(reactsData);
     // reactsData.reacts = post.
      res.json(reactsData);
@@ -211,6 +205,21 @@ router.get("/:postID/reacts",async (req,res,next)=>{
         const newReact = new React({publisher,reactType});
         await Post.updateOne({_id: postID},{$push: {reacts: newReact}});
         res.json({message: `Added a new React successfully!`,reactData: newReact});
+    }catch(err){
+        console.log(err);
+        next(err);
+    }
+})
+.delete("/:postID/reacts", async (req,res,next)=>{
+    if(!req.query.publisher){
+        return;
+    }
+    const postId = req.params.postID;
+    try{
+        const result = await Post.updateOne({_id: postId},{
+            $pull: {reacts: {publisher: req.query.publisher}}
+        })
+        res.json({message: `React of User ${req.query.publisher} has been removed successfully!`,result})
     }catch(err){
         console.log(err);
         next(err);

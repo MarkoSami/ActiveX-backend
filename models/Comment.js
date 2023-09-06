@@ -22,11 +22,6 @@ const CommentSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-    reactCount: {
-        type: Map,
-        of: Number,
-        default: {}
-    },
     publishDate: {
         type: Date,
         default: Date.now
@@ -35,4 +30,4 @@ const CommentSchema = new mongoose.Schema({
 });
 
 const Comment = mongoose.model('Comment', CommentSchema);
-module.exports = Comment;
+module.exports = {Comment, CommentSchema};
