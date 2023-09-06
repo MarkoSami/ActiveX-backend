@@ -112,6 +112,7 @@ router
             const comments = await Comment.find({
                 _id:{$in: post.comments} 
             }).select('-__v');
+            
             res.json(comments);
         }catch(err){
             console.log(err);
@@ -142,7 +143,7 @@ router
             if(!post){
                 res.status(404).json({err: `Post not found!`})
             }
-            const result = await post.comments.push(newComment._id);
+            const result = await post.comments.push(newComment);
             await post.save();
             res.json(newComment);
         }catch(err){
