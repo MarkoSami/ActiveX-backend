@@ -100,11 +100,18 @@ router
     router.get('/:postId/comments',async (req,res,next)=>{
         const postId = req.params.postId;
         if(!postId){
-            res.status(404).json({err: `POst not found!`});
-            return next();
+            res.status(404).json({err: `Missing data (Post id)!`});
+            return ;
         }
         try{
-            const comments = await Comment.find({});
+            const post = await Post.findById({_id: postId});
+            if(!post){
+                res.status(404).json({err: `Post not found`});
+                return;
+            }
+            const comments = await Comment.find({
+                _id:{$in: post.comments} 
+            }).select('-__v');
             res.json(comments);
         }catch(err){
             console.log(err);

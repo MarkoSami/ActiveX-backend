@@ -114,7 +114,7 @@ router
 
 router
 .get('/:userName/posts', async (req, res, next) => {
-  console.log(`------>entered the special`);
+
   if (!req.query.req) {
     return;
   }
@@ -202,24 +202,6 @@ router
   }
 })
 
-// .get('/:userName/posts',async(req,res,next)=>{
-//   const userName = req.params.userName;
-//   if(!userName){
-//     res.status(400).json({err: `wrong Params!`});
-//     return next();
-//   }
-//   try{
-//     const targetUser = User.findOne({userName});
-//     if(!targetUser){
-//       res.status(404).json({err: `User not found`})
-//     }
-//     const userPosts = await Post.find({publisher: userName});
-//     res.json(userPosts);
-//   }catch(err){
-//     console.log(err);
-//     next(err);
-//   }
-// })
 .delete('/:userName/posts',async(req,res,next)=>{
   const userName = req.params.userName;
   if(!userName){
