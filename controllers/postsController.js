@@ -72,7 +72,36 @@ const postsPipeline = (userName,viewerUserName,postID)=>{
             },
             0,
           ],
-        },
+        }
+      },
+    },
+    {
+      $project: {
+        labels: 0,
+        comments: 0,
+        __v: 0,
+        reacts: 0,
+        publisher: 0,
+      },
+    },
+    {
+      $sort: {
+        "publishDate": -1
+      }
+    }
+  ]
+  
+}
+
+module.exports.getPosts = async (userName,viewerUserName,postID)=>{
+
+  const posts = await Post.aggregate(postsPipeline(userName,viewerUserName,postID));
+  return posts;
+}
+
+
+/**
+ * ,
         reacts: {
           $reduce: {
             input: '$reacts',
@@ -106,25 +135,4 @@ const postsPipeline = (userName,viewerUserName,postID)=>{
             },
           },
         },
-      },
-    },
-    {
-      $project: {
-        labels: 0,
-        comments: 0,
-        __v: 0,
-        reacts: 0,
-        publisher: 0,
-      },
-    },
-  ]
-  
-}
-
-module.exports.getPosts = async (userName,viewerUserName,postID)=>{
-
-  const posts = await Post.aggregate(postsPipeline(userName,viewerUserName,postID));
-  return posts;
-}
-
-
+ */

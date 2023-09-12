@@ -6,6 +6,7 @@ const {Comment,CommentSchema} = require('../models/Comment');
 const {React,ReactSchema} = require('../models/React');
 const { default: mongoose } = require('mongoose');
 const postController = require('../controllers/postsController');
+const { reactsEnum } = require('../models/ReactsEnum');
 router
     .get('/', async (req, res, next) => {
         console.log(`_____>YES`);
@@ -233,20 +234,52 @@ router.get("/:postID/reacts",async (req,res,next)=>{
   }  
 })
 .post("/:postID/reacts",async (req,res,next)=>{
+    // checking for the existence of the body. 
     const postID = req.params.postID;
     if(!req.body){
         res.status(400).json({err: `Missing body!`});
         return;
     }
-    if(!req.body.publisher || !req.body.reactType){
+    // checking for existence of the publisher and reactType fields in the body provided.
+    if(!req.body.publisher || !req.body.reactType ){
         res.status(400).json({err: `Missing data!`});
         return;
     }
+
+    // checking if teh reactType field in the body is correct (of type reactsEnum). 
+    if(!req.body.reactType in reactsEnum){
+        res.status(400).json({Message: `Wrong react type!. you should provide one of these types${reactsEnum.join(', ')}`});
+    }
+
     const {publisher, reactType} = req.body;
     try{
+        
+        // checking for the existence of the post with id provided in the URI.
+        const post = await Post.findById({_id:postID});
+        if(!post){
+            res.status(404).json({Message: `Post not found!`});
+            return;
+        }
+        
+        // Getting the user old react indec if exists.  
+        const reactIndex = post.reacts.findIndex((react)=>react.publisher === req.body.publisher);
+        // creating new react
         const newReact = new React({publisher,reactType});
-        await Post.updateOne({_id: postID},{$push: {reacts: newReact}});
+        if(reactIndex !== -1){
+            post.reacts[reactIndex] = newReact
+            res.status(403).json({Message: `React has successfully changed to "${reactType}" `});
+            return;
+        }
+
+        // creating a new react and updating the post document.
+        post.reacts.push(newReact);
+
+        // saving the post document.
+        await post.save();
+
+        // sending the response to the user.
         res.json({message: `Added a new React successfully!`,reactData: newReact});
+
     }catch(err){
         console.log(err);
         next(err);

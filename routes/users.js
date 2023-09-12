@@ -1,8 +1,9 @@
 var express = require("express");
 var router = express.Router();
-const User = require('../models/User');
+const {User} = require('../models/User');
 const Post = require('../models/Posts');
 const postController = require('../controllers/postsController');
+const io = require('../bin/www');
 
 
 // handling HTTP requests on the '/users/' gateway
@@ -210,7 +211,17 @@ router
       user.friendRequests.push(friendUserName);
       await user.save();
       res.json({message: `Friend request sent successfully!`});
-
+      //todo
+      io.on("connection",(socket)=>{
+        const userData = {
+          userName: user.userName,
+          userImgURL: user.imgURL,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }
+        socket.emit("friendRequestSent",userData);
+        console.log(`Friend request notification has been sent successfully to user: ${userName}`)
+      });
     }catch(err){
       console.log(err);
       next(err);

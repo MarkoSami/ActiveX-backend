@@ -2,7 +2,7 @@
 var express = require('express');
 var router = express.Router();
 const Post = require('../models/Posts');
-const User = require('../models/User')
+const {User} = require('../models/User')
 
 router
     .get('/:userName', async (req, res, next) => {
@@ -16,7 +16,6 @@ router
                 .sort({ publishDate: -1, postPoints: -1 })
                 .skip(user.feedOffset)
                 .limit(10);
-            console.log(feed);
             res.json(feed);
         } catch (err) {
             console.log(err);
