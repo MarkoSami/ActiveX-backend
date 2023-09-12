@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 const User = require('../models/User');
 const Post = require('../models/Posts');
+const postController = require('../controllers/postsController');
 
 
 // handling HTTP requests on the '/users/' gateway
@@ -115,84 +116,8 @@ router
 router
 .get('/:userName/posts', async (req, res, next) => {
 
-  if (!req.query.req) {
-    return;
-  }
   try {
-    const posts = await Post.aggregate([
-      {
-        $match: { publisher: req.params.userName }
-      },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'publisher',
-          foreignField: 'userName',
-          pipeline: [
-            { $project: { userName: 1, firstName: 1, lastName: 1, imgURL: 1 } }
-          ],
-          as: 'publisherData'
-        }
-      },
-      {
-        $lookup: {
-          from: 'comments',
-          localField: 'comments',
-          foreignField: '_id',
-          pipeline: [
-            { $limit: 10 },
-            {
-              $lookup: {
-                from: 'users',
-                localField: 'publisher',
-                foreignField: 'userName',
-                pipeline: [
-                  { $project: { userName: 1, firstName: 1, lastName: 1, imgURL: 1, _id: 0 } }
-                ],
-                as: 'commentPublisherData'
-              }
-            },
-            { $project: { publisher: 0, _id: 0, __v: 0 } }
-          ],
-          as: 'initialComments'
-        }
-      },
-      {
-        $addFields: {
-          userReact: {
-            $arrayElemAt: [
-              {
-                $map: {
-                  input: {
-                    $filter: {
-                      input: "$reacts",
-                      as: "react",
-                      cond: {
-                        $eq: ["$$react.publisher", req.query.req]
-                      }
-                    }
-                  },
-                  as: "react",
-                  in: "$$react.reactType" // Correctly reference the field name as "reactType"
-                }
-              },
-              0 // Get the first element of the resulting array
-            ]
-          }
-        }
-      }
-      
-      ,
-      {
-        $project: {
-          labels: 0,
-          comments: 0,
-          __v: 0,
-          reacts: 0,
-          publisher: 0
-        }
-      }
-    ]);
+    const posts = await postController.getPosts(req.params.userName,req.query.req);
 
     console.log(posts);
     res.status(200).json(posts);

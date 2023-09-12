@@ -5,10 +5,13 @@ const Post = require('../models/Posts');
 const {Comment,CommentSchema} = require('../models/Comment');
 const {React,ReactSchema} = require('../models/React');
 const { default: mongoose } = require('mongoose');
+const postController = require('../controllers/postsController');
 router
     .get('/', async (req, res, next) => {
+        console.log(`_____>YES`);
         try {
-            const posts = await Post.find({});
+            const posts = await postController.getPosts(undefined,req.query.req);
+            console.log(`requester is ${req.query.req}`);
             res.status(200).json(posts);
         } catch (err) {
             console.log(err);
@@ -47,8 +50,9 @@ router
 router
     .get('/:postID', async (req, res, next) => {
         try {
+            console.log(`entered the post b y id `);
             const postId = req.params.postID;
-            const post = await Post.findById(postId);
+            const post = await postController.getPosts(undefined,req.query.req,postId);
             if (!post) {
                 res.status(404).json({ message: 'Post not found' });
                 return;
