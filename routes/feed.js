@@ -9,6 +9,7 @@ router
         const userName = req.params.userName;
         if(!userName){
             res.status(400).json({err: `there is no userID in the request`})
+            return;
         }
         try {
             const user = await User.find({userName});

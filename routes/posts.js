@@ -261,12 +261,13 @@ router.get("/:postID/reacts",async (req,res,next)=>{
             return;
         }
         
-        // Getting the user old react indec if exists.  
+        // Getting the user old react index if exists.  
         const reactIndex = post.reacts.findIndex((react)=>react.publisher === req.body.publisher);
         // creating new react
         const newReact = new React({publisher,reactType});
         if(reactIndex !== -1){
             post.reacts[reactIndex] = newReact
+            await post.save();
             res.status(403).json({Message: `React has successfully changed to "${reactType}" `});
             return;
         }

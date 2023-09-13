@@ -5,6 +5,7 @@
     const authenticate = async (req, res, next) => {
         if (req.path == '/#/login') {
             next(); // Skip authentication for login route
+            return;
         }
 
         const cookies = req.cookies;
@@ -32,9 +33,11 @@
             if (user) {
                 req.userName = user;
                 next(); // Continue to the next middleware if user is found
+                return;
             }
 
-            return res.status(401).json({Message: `User not found!, rdirect to login page`}) // Redirect if userName is not fund in the database
+            res.status(401).json({Message: `User not found!, rdirect to login page`}) // Redirect if userName is not fund in the database
+            return; 
         } catch (error) {   
             console.log(error);
             next();

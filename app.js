@@ -16,7 +16,8 @@ const feedRouter = require("./routes/feed");
 const loginRouter = require('./routes/login');
 const signupRouter = require('./routes/signup');
 const {authenticate} = require('./authentication/authenticate')
-const commentRouter = require('./routes/comments')
+const commentRouter = require('./routes/comments');
+const { errorHandler } = require("./lib/errorHandler");
 
 // const { authenticate } = require('./authentication/authenticate');
 
@@ -38,7 +39,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(cors({
-  origin: ['http://localhost:5173'], 
+  origin: ['http://localhost:5173','http://localhost:8000'], 
   credentials: true
 }));
 // app.use("/", indexRouter);
@@ -47,17 +48,17 @@ app.use(cors({
 //   res.send({ imgId: result });
 // });
  
-app.use("/login",loginRouter);
-app.use("/signup",signupRouter);
-app.use("/users", authenticate,usersRouter);
-app.use("/posts" ,authenticate,postsRouter);
-app.use("/comments" , authenticate,commentRouter);
-app.use("/feed", authenticate,feedRouter);
+app.use("/login",loginRouter,errorHandler);
+app.use("/signup",signupRouter,errorHandler);
+app.use("/users", usersRouter,errorHandler);
+app.use("/posts" ,postsRouter,errorHandler);
+app.use("/comments" ,commentRouter,errorHandler);
+app.use("/feed",feedRouter,errorHandler);
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
-});
+// app.use(function (req, res, next) {
+//   next(createError(404));
+// });
 
 // // error handler
 // app.use(function (err, req, res, next) {

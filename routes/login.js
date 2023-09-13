@@ -16,23 +16,22 @@ router.post("/", async (req, res, next) => {
     const user = await User.findOne({ userName: body.userName });
     if (!user) {
       console.log(`invalid credentials`);
-      res.status(401).json({ err: `Invalid credentials.` });
+      res.status(401).json({ err: `Incorrect username or password!` });
       return;
     }
     const isPasswordValid = await bcrypt.compare(body.password, user.password);
     if (!isPasswordValid) {
       console.log(`Invalid credentials`);
-      res.status(401).json({ err: `Invalid credentials password.` });
+      res.status(401).json({ err: `Incorrect username or password!` });
       return;
     }
     const jwtCreation = await createJWT(user.userName);
     // console.log(jwtCreation);
     res.cookie("token", jwtCreation, {
-      maxAge: 24 * 60 * 60,
-      httpOnly: false,
-      sameSite: 'None' ,// Allow cross-site requests
-      secure: true
+      maxAge: 24 * 60 * 60 * 1000, // Set maxAge in milliseconds (24 hours)
+      sameSite: 'None', // Allow cross-site requests for modern browsers
     });
+    
     res.json("logged in successfully");
   } catch (err) {
     console.log(err);
