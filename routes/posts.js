@@ -7,11 +7,17 @@ const {React,ReactSchema} = require('../models/React');
 const { default: mongoose } = require('mongoose');
 const postController = require('../controllers/postsController');
 const { reactsEnum } = require('../models/ReactsEnum');
+const utils = require('../lib/utils');
+const {User} = require('../models/User');
 router
     .get('/', async (req, res, next) => {
-        console.log(`_____>YES`);
+
+        const query = {};
+        if(req.query.mediaType){
+            query.mediaType = req.query.mediaType;
+        }
         try {
-            const posts = await postController.getPosts(undefined,req.query.req);
+            const posts = await postController.getPosts(query,req.query.req);
             console.log(`requester is ${req.query.req}`);
             res.status(200).json(posts);
         } catch (err) {
@@ -22,10 +28,31 @@ router
         }
     })
     .post('/', async (req, res, next) => {
+
         const { body } = req;
+
+        // checking for the existence of the userName in the body
+        if(!body.publisher){
+            return res.status(400).json({Message: `Publisher was not provided in the request body!`});
+        }
+
+        // checking for the Existence of the user
+        const publisher = User.findOne({userName: body.publisher});
+        if(!publisher){
+            return res.json(404).json({Message: `Publisher was not found!`});
+        }
+
+        // mapping the data in the body to the data wanted to create the post and avoiding  unnecessary data
+        const postData = utils.FieldMapper(body,['publisher','caption','mediaURL','mediaType']);
+
+        // adding the media type if not provided
+        if(!postData.mediaType){
+            postData.mediaType = utils.extractMediTypeFromURI(postData.mediaURL);
+        }
+
         try {
-            const result = await Post.create(body);
-            res.json(result);
+            const result = await Post.create(postData);
+            res.json();
         } catch (err) {
             console.log(err);
             next(err);
@@ -53,7 +80,7 @@ router
         try {
             console.log(`entered the post b y id `);
             const postId = req.params.postID;
-            const post = await postController.getPosts(undefined,req.query.req,postId);
+            const post = await postController.getPosts({_id: new mongoose.Types.ObjectId(postId)},req.query.req);
             if (!post) {
                 res.status(404).json({ message: 'Post not found' });
                 return;
@@ -268,7 +295,7 @@ router.get("/:postID/reacts",async (req,res,next)=>{
         if(reactIndex !== -1){
             post.reacts[reactIndex] = newReact
             await post.save();
-            res.status(403).json({Message: `React has successfully changed to "${reactType}" `});
+            res.status(200).json({Message: `React has successfully changed to "${reactType}" `});
             return;
         }
 

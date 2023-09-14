@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const {User} = require('../models/User');
+const userController = require('../controllers/usersController');
 const Post = require('../models/Posts');
 const postController = require('../controllers/postsController');
 const io = require('../bin/www');
@@ -10,38 +11,39 @@ const io = require('../bin/www');
 router
   .get("/", async (req, res, next) => {
     try {
-        const users = await User.find({}).select(
-            {
-              password: 0,
-              feedOffset: 0,
-              commentsOffset: 0,
-              friendRequestsOffset: 0,
-              __v: 0
-            }
-          );
-      res.statusCode = 200;
-      res.contentType = "application/json";
-      res.json({
+      const users = await userController.getUsers(undefined);
+      res.status(200).json({
         count: users.length,
         users
       });
     } catch (err) {
-      console.log(err);
       next(err);
     }
   })
   .post("/", async (req, res, next) => {
     const { body } = req;
     try {
-      const result = await User.create(body);
+      const userData = {};
+      if(body.firstName){
+        userData.firstName = body.firstName;
+      }
+      if(body.lastName){
+        userData.lastName = body.lastName;
+      }
+      if(body.userName){
+        userData.userName = body.userName;
+      }
+      if(body.password){
+        userData.password = body.password
+      }
+      if(body.imgURL){
+        userData.imgURL = body.imgURL;
+      }
+      const result = await User.create(userData);
       res.statusCode = 200;
       res.json(result);
     } catch (err) {
-      // res.json(`err`);
-      console.log(err);
-      res.json({ err });
-
-      // next(err);
+      next(err,req,res,next);
     }
   })
   .put("/", async (req, res, next) => {
@@ -62,12 +64,9 @@ router
   .get("/:userName", async (req, res, next) => {
     try {
       const userName = req.params.userName;
-      const users = await User.findOne({ userName }).select(
-        "-password -feedOffset -commentOffset -friendRequestsOffset"
-      );
+      const users = await userController.getUsers({userName: req.params.userName});
       res.json(users);
     } catch (err) {
-      console.log(err);
       next(err);
     }
   })
@@ -117,8 +116,13 @@ router
 router
 .get('/:userName/posts', async (req, res, next) => {
 
+  const query = {};
+  if(req.query.mediaType){
+    query.mediaType = req.query.mediaType;
+  }
+  query.publisher = req.params.userName;
   try {
-    const posts = await postController.getPosts(req.params.userName,req.query.req);
+    const posts = await postController.getPosts(query,req.query.req);
 
     console.log(posts);
     res.status(200).json(posts);
@@ -306,10 +310,18 @@ router
     }
 
     try{
+      // checking  for the existence of the user
       const user =await User.findOne({userName});
+      if(!user){
+        return res.status(404).json({Message: `User not found!`});
+      }
+
       const friendsUserNames = user.friends;
-      const friends = await User.find({userName: {$in:friendsUserNames}}).limit(50);
+      console.log(friendsUserNames);
+      const friends = await userController.getUsers({userName: {$in:friendsUserNames}});
+      console.log(friends);
       res.json(friends);
+
     }catch(err){
       console.log(err);
       next(err);
@@ -348,6 +360,12 @@ router
         return;
       }
 
+      // checking if the user is trying to add himself as a friend
+      if(user == friend){
+        res.status(403).json({Message: `User Can't be friend to himself!`});
+        return;
+      }
+      
       if( user.friends.find((friend)=> friend == friendUserName  )){
         res.status(400).json({err: `User already exists in Friends list!`});
         return ;
@@ -468,36 +486,6 @@ router
 
 
 
-  //handling friends of a specific user 
-
-  router
-  .get('/:userName/friends',async (req,res,next)=>{
-    const userName = req.params.userId;
-    const friendUserName = req.body.friendUserName;
-    if(!userId || !friendId){
-      res.status(400).json({err: `wrong parameters`});
-      return next();
-    }
-    try{
-      const user = await User.findOne({userName});
-      const friend = await User.findOne({userName});
-
-    }catch(err){
-
-    }
-
-  })
-  .post('/:userId/friends',async (req,res,next)=>{
-
-  })
-  .delete('/:userId/friends',async (req,res,next)=>{
-
-  })
-  .all('/:userId/friends',async (req,res,next)=>{
-
-  });
-
-
 // handling getting a specific post of a specific user  by username and user id 
   router
   .get('/:userName/:postId',async(req,res,next)=>{
@@ -546,109 +534,6 @@ router
   .all('/',async(req,res,next)=>{
     res.status(403).json({err: `${req.method} is not allowed in ${req.path}`})
   });
-
-
-
- 
-
-  // router
-  // .get('/:userName/friends/:friendID',(req,res,next)=>{
-
-  // })
-  // .post('/:userName/friends/:friendID',(req,res,next)=>{
-    
-  // })
-  // .delete('/:userName/friends/:friendID',(req,res,next)=>{
-    
-  // });
-
-
-
-
-  // handling friends of a specific user 
-
-//   router
-//   .get('/:userName/friends',async (req,res,next)=>{
-//     const userName = req.params.userId;
-//     const friendUserName = req.body.friendUserName;
-//     if(!userId || !friendId){
-//       res.status(400).json({err: `wrong parameters`});
-//       return next();
-//     }
-//     try{
-//       const user = await User.findOne({userName});
-//       const friend = await User.findOne({userName});
-
-//     }catch(err){
-
-//     }
-
-//   })
-//   .post('/:userId/friends',async (req,res,next)=>{
-
-//   })
-//   .delete('/:userId/friends',async (req,res,next)=>{
-
-//   })
-//   .all('/:userId/friends',async (req,res,next)=>{
-
-//   });
-
-// router
-//   .get('/:userName/friends/:friendUserName',async (req,res,next)=>{
-
-//   })
-//   // handling adding new friend to the friends requests of a specifi user 
-//   .post('/:userName/friends/:friendUserName',async (req,res,next)=>{
-//     const {userName,friendUserName} = req.params;
-//     if(!userName || !friendUserName){
-//       res.status(400).json({err:`Wrong parameters!`});
-//       return next();
-//     }
-//     try{
-//       const user = await User.findOne({userName});
-//       const friend = await User.findOne({friendUserName});
-
-//       if(!user || !friend){
-//         res.status(404).json({err: `data not found`});
-//         return next();
-//       }
-      
-//       const targetIndex = friend.friendsRequests.findIndex(userName);
-//       if(targetIndex !== -1){  // checking if the freind is already requested 
-//         res.status(403).json({message: `Friend request already sent!`});
-//         return next();
-//       }
-//       friend.friendsRequests.push(userName);
-//       friend.save();
-//       res.json({message: `Friend resuest sent!`});
-//     }catch(err){
-//       console.log(err);
-//       next(err);
-//     }
-//   })
-
-//   .put('/:userName/friends/:friendUserName',async (req,res,next)=>{
-
-//   })
-
-//   .delete('/:userName/friends/:friendUserName',async (req,res,next)=>{
-//     const {userName,friendUserName} = req.params;
-//     if(!userName || !friendUserName){
-//       res.status(400).json({err:`Wrong parameters!`});
-//       return next();
-//     }
-//     try{
-//         const user = await User.findByIdAndUpdate(userId, { $pull: { friends: friendUserName } });
-//         res.json(user);
-//       }catch(err){
-//         console.log(err);
-//         next(err);
-//       }
-//   })
-//   .all('/:userName/friends/:friendUserName',async (req,res,next)=>{
-
-// });
 
   
 

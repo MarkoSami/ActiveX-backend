@@ -2,6 +2,7 @@
         const reactsEnum = require('./ReactsEnum');
         const {CommentSchema} = require('./Comment');
         const {ReactSchema} = require('./React');
+        const {extractMediTypeFromURI} = require('../lib/utils');
 
         const PostSchema = new mongoose.Schema({
             publisher: {
@@ -23,6 +24,22 @@
             mediaURL: {
                 type: String,
                 default: ''
+            },
+            mediaType: {
+                type: String,
+                enum: ['video', 'image', 'audio', 'none'],
+                // default: extractMediTypeFromURI(this.mediaURL),
+                validate: {
+                    validator: function (value) {
+                        if (!this.mediaURL) {
+                            // No mediaURL, so mediaType is allowed to be empty
+                            return true;
+                        }
+                    
+                        return !!value;
+                    },
+                    message: `mediaType cannot be empty!`
+                }
             },
             labels: {
                 type: [{
@@ -47,15 +64,19 @@
         }
         );
 
-        
-        // // Define a virtual field for the total post points
-        // PostSchema.virtual('postPoints').get(function () {
-        //     let total = 0;
-        //     for (const [emoji, count] of this.reactsCount) {
-        //         total += count * reactsEnum[emoji];
-        //     }
-        //     return total;
-        // });
+        // validating the mediaType field 
+        PostSchema.pre('validate', function (next) {
+            
+            if (this. mediaURL && !this.mediaType) { 
+              this.invalidate('mediaType', 'mediaType cannot be empty!', this.mediaType);
+              return next();
+            }
+
+            if(this.mediaType && extractMediTypeFromURI(this.mediaURL) !== this.mediaType){
+                this.invalidate('mediaType','mediaType is not valid for this media!',this.mediaType);
+            }
+            next();
+          });
 
 
         const Post = mongoose.model('Post', PostSchema);

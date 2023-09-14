@@ -1,22 +1,10 @@
 const Post = require('../models/Posts');
 const mongoose = require('mongoose');
 
-const postsPipelineMatch = (userName, postID) => {
-  if(postID){
-    return {_id: new mongoose.Types.ObjectId(postID)};
-  }
-  if(userName){
-    return{publisher: userName};
-  }
-  return {};
-};
-const postsPipeline = (userName,viewerUserName,postID)=>{
-  const postsPipeLineMatchQuerryObj = postsPipelineMatch(userName,postID);
-
-  console.log(`in tthe pipeline the posId is ${postID} and req is ${viewerUserName}`);
+const getpostsPipeline = (query,viewerUserName)=>{
   return [
     {
-      $match: postsPipelineMatch(userName,postID)
+      $match: (query)? query : {}
     }
     ,
     {
@@ -93,46 +81,9 @@ const postsPipeline = (userName,viewerUserName,postID)=>{
   
 }
 
-module.exports.getPosts = async (userName,viewerUserName,postID)=>{
+module.exports.getPosts = async (query,viewerUserName)=>{
 
-  const posts = await Post.aggregate(postsPipeline(userName,viewerUserName,postID));
+  const posts = await Post.aggregate(getpostsPipeline(query,viewerUserName));
   return posts;
 }
 
-
-/**
- * ,
-        reacts: {
-          $reduce: {
-            input: '$reacts',
-            initialValue: [],
-            in: {
-              $cond: {
-                if: { $in: ['$$this.reactType', '$$value.reactType'] },
-                then: {
-                  $map: {
-                    input: '$$value',
-                    as: 'el',
-                    in: {
-                      $cond: {
-                        if: { $eq: ['$$el.reactType', '$$this.reactType'] },
-                        then: {
-                          reactType: '$$el.reactType',
-                          count: { $add: ['$$el.count', 1] },
-                        },
-                        else: '$$el',
-                      },
-                    },
-                  },
-                },
-                else: {
-                  $concatArrays: [
-                    '$$value',
-                    [{ reactType: '$$this.reactType', count: 1 }],
-                  ],
-                },
-              },
-            },
-          },
-        },
- */
