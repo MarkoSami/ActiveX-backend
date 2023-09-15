@@ -5,13 +5,15 @@ const userController = require('../controllers/usersController');
 const Post = require('../models/Posts');
 const postController = require('../controllers/postsController');
 const io = require('../bin/www');
+const utils = require('../lib/utils');
 
 
 // handling HTTP requests on the '/users/' gateway
 router
   .get("/", async (req, res, next) => {
     try {
-      const users = await userController.getUsers(undefined);
+      const query = {};
+      const users = await userController.getUsers(query,req.query.req);
       res.status(200).json({
         count: users.length,
         users
@@ -64,7 +66,7 @@ router
   .get("/:userName", async (req, res, next) => {
     try {
       const userName = req.params.userName;
-      const users = await userController.getUsers({userName: req.params.userName});
+      const users = await userController.getUsers({userName: req.params.userName},req.query.req);
       res.json(users);
     } catch (err) {
       next(err);
@@ -187,6 +189,7 @@ router
       const user = await User.findOne({userName});
       const friend = await User.findOne({userName: friendUserName});
 
+      
       // checking for exisyence of the user and the friend in the database
       if(!user){
         res.status(404).json({err: `user not found!`});

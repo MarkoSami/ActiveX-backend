@@ -82,7 +82,7 @@ const getpostsPipeline = (query,viewerUserName)=>{
 }
 
 module.exports.getPosts = async (query,viewerUserName)=>{
-
+console.log(`querried post with querry : {${query} and requester: ${viewerUserName}}`);
   const posts = await Post.aggregate(getpostsPipeline(query,viewerUserName));
   return posts;
 }
