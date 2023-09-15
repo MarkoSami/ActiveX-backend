@@ -51,18 +51,18 @@ const getUsersPipeline = (query,vierwerUserName) => {
                 else: {
                   $cond: {
                     if: {
-                       
-                        $or: [
-                            {
-                                $in: [vierwerUserName, "$friendRequests"]
-                            },
-                            {
-                                $in: ['$userName', '$viewerData.friendRequests']
-                            }
-                        ]
+                        $in: [vierwerUserName, "$friendRequests"]
                     },
                     then: "requested",
-                    else: "none"
+                    else:{
+                        $cond: {
+                            if:{
+                                $in: ['$userName', '$viewerData.friendRequests']
+                            },
+                            then: "notConfirmed",
+                            else: "none"
+                        }
+                    }
                   }
                 }
               }
