@@ -101,8 +101,8 @@ router
                 return ;
             }
             const postId = req.params.postID;
-            const { caption,mediaURL}= req.body;
-            const updatedPost = await Post.findByIdAndUpdate(postId, {caption,mediaURL}, { new: true });
+            const postData = utils.FieldMapper(req.body,['caption','mediaURL','mediaType']);
+            const updatedPost = await Post.findByIdAndUpdate(postId, postData, { new: true });
             if (!updatedPost) {
                 res.status(404).json({ message: 'Post not found' });
                 return;

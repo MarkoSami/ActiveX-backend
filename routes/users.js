@@ -25,22 +25,7 @@ router
   .post("/", async (req, res, next) => {
     const { body } = req;
     try {
-      const userData = {};
-      if(body.firstName){
-        userData.firstName = body.firstName;
-      }
-      if(body.lastName){
-        userData.lastName = body.lastName;
-      }
-      if(body.userName){
-        userData.userName = body.userName;
-      }
-      if(body.password){
-        userData.password = body.password
-      }
-      if(body.imgURL){
-        userData.imgURL = body.imgURL;
-      }
+      const userData = utils.FieldMapper(body,['userName','password','firstName','lastName','imgURL']);
       const result = await User.create(userData);
       res.statusCode = 200;
       res.json(result);
@@ -81,22 +66,9 @@ router
       res.status(400).json({message: `The request has no body.`});
       return ;
     }
-    let updateData = {} ;
-    if (req.body.firstName) {
-      updateData.firstName = req.body.firstName;
-    }
-    if (req.body.lastName) {
-      updateData.lastName = req.body.lastName;
-    }
-    if (req.body.userDescription) {
-      updateData.userDescription = req.body.userDescription;
-    }
-    if (req.body.imgURL) {
-      updateData.imgURL = req.body.imgURL;
-    }
-    if (req.body.coverURL) {
-      updateData.coverURL = req.body.coverURL;
-    }
+
+    let updateData = utils.FieldMapper(req.body,['firstName','lastName','userDescription','imgURL','coverURL']);
+
     const userName = req.params.userName;
 
     console.log(updateData);
