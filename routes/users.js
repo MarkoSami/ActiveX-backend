@@ -12,7 +12,14 @@ const utils = require('../lib/utils');
 router
   .get("/", async (req, res, next) => {
     try {
-      const query = {};
+      let query = {};
+      if (req.query.userName) {
+          query.userName = {
+          $regex: req.query.userName
+      };
+    }
+
+      
       const users = await userController.getUsers(query,req.query.req);
       res.status(200).json({
         count: users.length,
