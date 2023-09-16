@@ -46,7 +46,7 @@ router
         const postData = utils.FieldMapper(body,['publisher','caption','mediaURL','mediaType']);
 
         // adding the media type if not provided
-        if(!postData.mediaType){
+        if( postData.mediaURL && !postData.mediaType){
             postData.mediaType = utils.extractMediTypeFromURI(postData.mediaURL);
         }
 
