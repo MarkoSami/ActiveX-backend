@@ -52,7 +52,7 @@ router
 
         try {
             const result = await Post.create(postData);
-            res.json();
+            res.json(result);
         } catch (err) {
             console.log(err);
             next(err);

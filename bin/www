@@ -47,12 +47,22 @@ let RandomGroupRooms = [];//rooms which are available to join randomly between 2
 
 let GroupRooms = [];//private rooms between 2 or more persons
 
+let connectedUsers_IDtoUserName = new Map(); // socket ids mapped to their usernames
+let connectedUsers_UserNametoId = new Map(); // socket ids mapped to their usernames
 
 
 
-io.on("connection", (socket) => {
+const runSocketOperations = (socket,operations)=>{
+  operations.foreach((operation)=>{
+    operation(socket);
+  })
+};
+
+
+io.on("connection", (socket,userName) => {
   // console.log(socket.id);
-
+  connectedUsers_IDtoUserName.set(socket.id,userName);
+  connectedUsers_UserNametoId.set(userName,socket.id);
   // join new room event 
   socket.on("join_random_room", async () => {
     let roomId;

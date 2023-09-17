@@ -4,7 +4,7 @@ const {User} = require('../models/User');
 const userController = require('../controllers/usersController');
 const Post = require('../models/Posts');
 const postController = require('../controllers/postsController');
-const io = require('../bin/www');
+const {io,connectedUsers_IDtoUserName,connectedUsers_UserNametoId} = require('../bin/sockets');
 const utils = require('../lib/utils');
 
 
@@ -206,7 +206,8 @@ router
           firstName: user.firstName,
           lastName: user.lastName
         }
-        socket.emit("friendRequestSent",userData);
+        const socketId = connectedUsers_UserNametoId[userData.userName];
+        socket.to.emit("friendRequestSent",userData);
         console.log(`Friend request notification has been sent successfully to user: ${userName}`)
       });
     }catch(err){
@@ -294,7 +295,7 @@ router
 
     try{
       // checking  for the existence of the user
-      const user =await User.findOne({userName});
+      const user = await User.findOne({userName});
       if(!user){
         return res.status(404).json({Message: `User not found!`});
       }

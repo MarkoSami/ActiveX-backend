@@ -25,14 +25,14 @@ router.post("/", async (req, res, next) => {
       res.status(401).json({ err: `Incorrect username or password!` });
       return;
     }
-    const jwtCreation = await createJWT(user.userName);
+    const jwt = await createJWT(user.userName);
     // console.log(jwtCreation);
-    res.cookie("token", jwtCreation, {
-      maxAge: 24 * 60 * 60 * 1000, // Set maxAge in milliseconds (24 hours)
-      sameSite: 'None', // Allow cross-site requests for modern browsers
-    });
+    // res.cookie("token", jwtCreation, {
+    //   maxAge: 24 * 60 * 60 * 1000, // Set maxAge in milliseconds (24 hours)
+    //   sameSite: 'None', // Allow cross-site requests for modern browsers
+    // });
     
-    res.json("logged in successfully");
+    res.json({Message: `logged  in successfully!`,token: jwt});
   } catch (err) {
     console.log(err);
     next(err);

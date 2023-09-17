@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {User} = require('../models/User');
 const {createJWT} = require('../authentication/createJWT');
+const utils = require('../lib/utils');
 
 
 router.post('/',async (req,res,next)=>{
@@ -9,22 +10,38 @@ router.post('/',async (req,res,next)=>{
         res.status(400).json({err: `request does not contain a body`});
         return;   
     }
-    const {userName,password,firstName,lastName,describtion,imgURL} = req.body;
+    const userData = utils.FieldMapper(req.body,['userName','password','firstName','lastName','describtion','imgURL']);
+    
+    const user = await User.findOne({userName: userData.userName});
+    console.log(user);
+    if(userData.userName && user){
+        return res.status(409).json({Message: `This is user is already registered!`});
+    }
+    
     try{
-        const createdUser = await User.create({
-            userName,
-            password,
-            firstName,
-            lastName,
-            describtion,
-            imgURL
-        });
-        res.cookie('token',createJWT(createdUser.userName),{
-             maxAge: 24*60*60*1000, 
-             httpOnly: false,
-             sameSite: 'None' 
-            });
-        res.json(createdUser)
+        const createdUser = await User.create(userData);
+
+        // res.cookie('token',createJWT(createdUser().userName),{
+        //      maxAge: 24*60*60*1000, 
+        //      httpOnly: false,
+        //      sameSite: 'None' 
+        //     });
+
+        if(createdUser){
+            const responseUserData = {
+                userName: userData.userName,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                imgURL: userData.imgURL
+            }   
+            const jwt = await  createJWT(userData.userName);
+            res.json({
+                Message: `User signed up successfullt!`,
+                userData: responseUserData,
+                token: jwt,
+            })
+        }
+        res.status()
     }catch(err){
         next(err);
     }

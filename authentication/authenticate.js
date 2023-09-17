@@ -24,19 +24,19 @@
             if (!decodedToken.userName) {
             console.log(`Missing username`);
 
-                res.status(401).json({Message: `Missing username, rdirect to login page`}) // Redirect if userName is missing in the token
+                res.status(401).json({Message: `Missing username, redirect to login page`}) // Redirect if userName is missing in the token
                 return ;
             }
 
             const user = await User.findOne({ userName: decodedToken.userName });
 
             if (user) {
-                req.userName = user;
+                req.userName = user.userName;
                 next(); // Continue to the next middleware if user is found
                 return;
             }
 
-            res.status(401).json({Message: `User not found!, rdirect to login page`}) // Redirect if userName is not fund in the database
+            res.status(401).json({Message: `User not found!, redirect to login page`}) // Redirect if userName is not fund in the database
             return; 
         } catch (error) {   
             console.log(error);
