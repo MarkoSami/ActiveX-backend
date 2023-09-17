@@ -5,7 +5,7 @@ const http = require('http');
 const { v4: uuidv4 } = require('uuid');
 const utils = require('../lib/utils');
 
-let  io;
+let  socketIO = require('socket.io');
 
 // Store room information 
 let RandomOneToOneRooms = [];// rooms which are available to join randomly between 2 persons
@@ -17,13 +17,13 @@ let RandomGroupRooms = [];//rooms which are available to join randomly between 2
 let GroupRooms = [];//private rooms between 2 or more persons
 
 let connectedUsers_IDtoUserName = new Map(); // socket ids mapped to their usernames
-let connectedUsers_UserNametoId = new Map(); // socket ids mapped to their usernames
+let connectedUsers_UserNametoId = new Map(); // socket usernames mapped to their ids
 
-
+let io ;
 
 const runIO = (server)=>{
     // establish socketIO server
-    io = require('socket.io')(server, {
+    io = socketIO(server, {
     cors: {
       origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
       methods: ['GET', 'POST'],
