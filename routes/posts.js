@@ -9,6 +9,7 @@ const postController = require('../controllers/postsController');
 const { reactsEnum } = require('../models/ReactsEnum');
 const utils = require('../lib/utils');
 const {User} = require('../models/User');
+
 router
     .get('/', async (req, res, next) => {
 
@@ -16,8 +17,10 @@ router
         if(req.query.mediaType){
             query.mediaType = req.query.mediaType;
         }
+        
         try {
-            const posts = await postController.getPosts(query,req.query.req);
+            console.log(`The offset query is ${req.query.offset}`);
+            const posts = await postController.getPosts(query,req.query.req, req.query.offset? req.query.offset : 0, req.query.limit? req.query.limit : 20 );
             console.log(`requester is ${req.query.req}`);
             res.status(200).json(posts);
         } catch (err) {
@@ -187,16 +190,7 @@ router
             res.status(404).json({err: `Post not found!`});
             return next();
         }
-        const commentData = {};
-  if ('publisher' in req.body) {
-    commentData.publisher = req.body.publisher;
-  }
-  if ('caption' in req.body) {
-    commentData.caption = req.body.caption;
-  }
-  if ('mediaURL' in req.body) {
-    commentData.mediaURL = req.body.mediaURL;
-  }
+        const commentData = utils.FieldMapper(req.body,['publisher,caption,mediaURL'])
 
         try{
             const newComment = new Comment(commentData);
@@ -208,6 +202,16 @@ router
             const result = await post.comments.push(newComment);
             await post.save();
             res.json(newComment);
+            
+            const io = req.app.locals.io;
+            const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;
+            const commentData = {
+                commentPublisher: req.body.publisher,
+                postID: post._id,
+                commentDate: new Date()
+            };
+            io.to(connectedUsers_UserNametoId[post.publisher]).emit("commentMade",commentData);
+
         }catch(err){
             console.log(err);
             next(err);
@@ -287,7 +291,13 @@ router.get("/:postID/reacts",async (req,res,next)=>{
             res.status(404).json({Message: `Post not found!`});
             return;
         }
-        
+
+        // checking for the existence of the post publisher
+        const publisherDoc = User.findOne({userName: publisher});
+        if(!publisherDoc){
+            return res.status(404).json({Message: `Publisher was not found!`});
+        }
+
         // Getting the user old react index if exists.  
         const reactIndex = post.reacts.findIndex((react)=>react.publisher === req.body.publisher);
         // creating new react
@@ -307,7 +317,26 @@ router.get("/:postID/reacts",async (req,res,next)=>{
 
         // sending the response to the user.
         res.json({message: `Added a new React successfully!`,reactData: newReact});
+        const io = req.app.locals.io;
+        const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;
+        
+        const reactData = {
+            postId: post._id,
+            reactType,
+            reactDate: new Date(),
+            reactorData: {
+                userName:  publisherDoc.userName,
+                imgURL: publisherDoc.imgURL,
+                firstName: publisherDoc.firstName,
+                lasName: publisherDoc.lastName
+            }
 
+        }
+        io.to(connectedUsers_UserNametoId[post.publisher]).emit("reactMade",reactData);
+        console.log('__________________________________________________________________________________________________________________________________________________\n');
+        console.log(`Sent user react notification to user ${post.publisher} with socketId: ${connectedUsers_UserNametoId[post.publisher]} on post with if : ${post._id} by user ${publisher} with socketId: ${connectedUsers_UserNametoId[publisher]} `);
+        console.log('__________________________________________________________________________________________________________________________________________________\n');
+          
     }catch(err){
         console.log(err);
         next(err);

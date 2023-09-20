@@ -1,8 +1,15 @@
 const Post = require('../models/Posts');
 const mongoose = require('mongoose');
 
-const getpostsPipeline = (query,viewerUserName)=>{
+const getpostsPipeline = (query,viewerUserName,offset,limit)=>{
+
+  limit = (limit>30) ? +30 : +limit; // validating the limit value
+
   return [
+    {
+      $skip: (offset <= 0)?  0 :(offset-1)*limit
+    },
+
     {
       $match: (query)? query : {}
     }
@@ -76,14 +83,19 @@ const getpostsPipeline = (query,viewerUserName)=>{
       $sort: {
         "publishDate": -1
       }
+    },
+    {
+      $limit: limit
     }
   ]
   
 }
 
-module.exports.getPosts = async (query,viewerUserName)=>{
+module.exports.getPosts = async (query,viewerUserName,offset,limit)=>{
+
 console.log(`querried post with querry : {${query} and requester: ${viewerUserName}}`);
-  const posts = await Post.aggregate(getpostsPipeline(query,viewerUserName));
+
+  const posts = await Post.aggregate(getpostsPipeline(query,viewerUserName,offset,limit));
   return posts;
 }
 

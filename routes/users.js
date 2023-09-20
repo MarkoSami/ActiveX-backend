@@ -4,7 +4,9 @@ const {User} = require('../models/User');
 const userController = require('../controllers/usersController');
 const Post = require('../models/Posts');
 const postController = require('../controllers/postsController');
-const {io,connectedUsers_IDtoUserName,connectedUsers_UserNametoId} = require('../bin/sockets');
+// const {connectedUsers_IDtoUserName,connectedUsers_UserNametoId} = require('../app');
+
+
 const utils = require('../lib/utils');
 
 
@@ -19,8 +21,10 @@ router
         query.userName = { "$regex": `^${req.query.userName}`, "$options": "i" };
     }
 
+  
+
       // getting the users
-      const users = await userController.getUsers(query,req.query.req);
+      const users = await userController.getUsers(query,req.query.req, req.query.offset? req.query.offset : 0, req.query.limit? req.querylimit : 30);
       
       res.status(200).json({
         count: users.length,
@@ -79,7 +83,6 @@ router
 
     const userName = req.params.userName;
 
-    console.log(updateData);
     try {
       const result = await User.findOneAndUpdate({ userName }, updateData, {
         new: true
@@ -105,8 +108,6 @@ router
   query.publisher = req.params.userName;
   try {
     const posts = await postController.getPosts(query,req.query.req);
-
-    console.log(posts);
     res.status(200).json(posts);
   } catch (err) {
     console.log(err);
@@ -173,7 +174,6 @@ router
       // checking for exisyence of the user and the friend in the database
       if(!user){
         res.status(404).json({err: `user not found!`});
-        console.log(`user not found`);
         return ;
       }
 
@@ -199,17 +199,30 @@ router
       await user.save();
       res.json({message: `Friend request sent successfully!`});
       //todo
-      io.on("connection",(socket)=>{
-        const userData = {
-          userName: user.userName,
-          userImgURL: user.imgURL,
-          firstName: user.firstName,
-          lastName: user.lastName
-        }
-        const socketId = connectedUsers_UserNametoId[userData.userName];
-        socket.to.emit("friendRequestSent",userData);
-        console.log(`Friend request notification has been sent successfully to user: ${userName}`)
-      });
+      const io = req.app.locals.io;
+      
+        
+      const userData = {
+        userName: user.userName,
+        userImgURL: user.imgURL,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        requesteDate: new Date()
+      }
+      const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;
+      const connectedUsers_IDtoUserName = req.app.locals.connectedUsers_IDtoUserName;
+
+      // console.log(connectedUsers_UserNametoId);
+      // console.log( connectedUsers_IDtoUserName);
+      if(userData && userData.userName){
+        // const socketId = connectedUsers_UserNametoId.get(userData.userName);
+      }
+      // console.log(connectedUsers_UserNametoId[friendUserName]);
+      io.to(connectedUsers_UserNametoId[userName]).emit("friendRequestSent",userData);
+      console.log('__________________________________________________________________________________________________________________________________________________\n');
+      console.log(`==> Friend request notification has been sent successfully to user: ${userName} with socket id : ${connectedUsers_UserNametoId[userName]}`)
+      console.log('__________________________________________________________________________________________________________________________________________________\n');
+        
     }catch(err){
       console.log(err);
       next(err);
@@ -301,9 +314,7 @@ router
       }
 
       const friendsUserNames = user.friends;
-      console.log(friendsUserNames);
       const friends = await userController.getUsers({userName: {$in:friendsUserNames}});
-      console.log(friends);
       res.json(friends);
 
     }catch(err){
@@ -335,7 +346,6 @@ router
       // checking for invalid username or invalid freind username
       if(!user){
         res.status(404).json({err: `user not found!`});
-        console.log(`user not found`);
         return ;
       }
 
@@ -387,9 +397,20 @@ router
         }
       );
 
-      
-
-      console.log(`user saved successfuly`);
+      const  userData = {
+        userName: friend.userName,
+        imgURL: friend.imgURL,
+        firstName: friend.firstName,
+        lastName: friend.lastName,
+        confirmationDate: new Date()
+      };
+      const io = req.app.locals.io;
+      // todo2
+      io.to(connectedUsers_UserNametoId[friendUserName]).emit('friendRequestAccepted',userData);
+      console.log('__________________________________________________________________________________________________________________________________________________\n');
+      console.log(`==> Friend Acception notification has been sent successfully to user: ${friendUserName} with socket id : ${connectedUsers_UserNametoId[friendUserName]}`)
+      console.log('__________________________________________________________________________________________________________________________________________________\n');
+        
       res.json({message: `friend request accepted!`});
     }catch(err){
       console.log(err);
