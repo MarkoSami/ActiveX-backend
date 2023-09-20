@@ -202,7 +202,7 @@ router
             const result = await post.comments.push(newComment);
             await post.save();
             res.json(newComment);
-            
+
             const io = req.app.locals.io;
             const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;
             const commentData = {
@@ -211,6 +211,10 @@ router
                 commentDate: new Date()
             };
             io.to(connectedUsers_UserNametoId[post.publisher]).emit("commentMade",commentData);
+            console.log('__________________________________________________________________________________________________________________________________________________\n');
+            console.log(`==> Comment publishing  notification has been sent successfully to user: ${post.publisher} with socket id : ${connectedUsers_UserNametoId[post.publisher]} made by user: ${req.body.publisher}`);
+            console.log('__________________________________________________________________________________________________________________________________________________\n');
+              
 
         }catch(err){
             console.log(err);
