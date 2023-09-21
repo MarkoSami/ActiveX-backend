@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const getpostsPipeline = (query,viewerUserName,offset,limit)=>{
 
-  limit = (limit>30) ? +30 : +limit; // validating the limit value
+  limit = (!limit || limit>30) ? +30 : +limit; // validating the limit value
 
   return [
     {

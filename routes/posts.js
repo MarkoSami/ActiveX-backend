@@ -83,7 +83,7 @@ router
         try {
             console.log(`entered the post b y id `);
             const postId = req.params.postID;
-            const post = await postController.getPosts({_id: new mongoose.Types.ObjectId(postId)},req.query.req);
+            const post = await postController.getPosts({_id: new mongoose.Types.ObjectId(postId)},req.query.req,req.query.offset? req.query.offset : 0, req.query.limit? req.query.limit : 30);
             if (!post) {
                 res.status(404).json({ message: 'Post not found' });
                 return;
@@ -139,7 +139,7 @@ router
             return ;
         }
         try{
-            const post = await Post.findById({_id: postId});
+            const post = await Post.findById(postId);
             if(!post){
                 res.status(404).json({err: `Post not found`});
                 return;

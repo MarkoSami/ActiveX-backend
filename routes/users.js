@@ -107,7 +107,7 @@ router
   }
   query.publisher = req.params.userName;
   try {
-    const posts = await postController.getPosts(query,req.query.req);
+    const posts = await postController.getPosts(query,req.query.req,req.query.offset? req.query.offset: 0, req.query.limit? req.query.limit : 0);
     res.status(200).json(posts);
   } catch (err) {
     console.log(err);
