@@ -190,27 +190,34 @@ router
             res.status(404).json({err: `Post not found!`});
             return next();
         }
-        const commentData = utils.FieldMapper(req.body,['publisher,caption,mediaURL'])
 
+        
         try{
+
+            // preparing data to be sent to the client 
+            const commentData = utils.FieldMapper(req.body,['publisher','caption','mediaURL']);
             const newComment = new Comment(commentData);
             await newComment.save();
             const post = await Post.findById(postId);
+
+            // validating the post existence
             if(!post){
-                res.status(404).json({err: `Post not found!`})
+                res.status(404).json({err: `Post not found!`});
+                return next();
             }
             const result = await post.comments.push(newComment);
             await post.save();
             res.json(newComment);
 
+            // pushing notification to the client
             const io = req.app.locals.io;
             const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;
-            const commentData = {
+            const notificationCommentData = {
                 commentPublisher: req.body.publisher,
                 postID: post._id,
                 commentDate: new Date()
             };
-            io.to(connectedUsers_UserNametoId[post.publisher]).emit("commentMade",commentData);
+            io.to(connectedUsers_UserNametoId[post.publisher]).emit("commentMade",notificationCommentData);
             console.log('__________________________________________________________________________________________________________________________________________________\n');
             console.log(`==> Comment publishing  notification has been sent successfully to user: ${post.publisher} with socket id : ${connectedUsers_UserNametoId[post.publisher]} made by user: ${req.body.publisher}`);
             console.log('__________________________________________________________________________________________________________________________________________________\n');
