@@ -87,7 +87,7 @@ router
       const result = await User.findOneAndUpdate({ userName }, updateData, {
         new: true
       });
-      console.log(result);
+
       res.json(result);
     } catch (err) {
       console.log(err);
@@ -107,7 +107,7 @@ router
   }
   query.publisher = req.params.userName;
   try {
-    const posts = await postController.getPosts(query,req.query.req,req.query.offset? req.query.offset: 0, req.query.limit? req.query.limit : 0);
+    const posts = await postController.getPosts(query,req.query.req,req.query.offset? req.query.offset: 0, req.query.limit? req.query.limit : 30);
     res.status(200).json(posts);
   } catch (err) {
     console.log(err);
@@ -207,6 +207,7 @@ router
         userImgURL: user.imgURL,
         firstName: user.firstName,
         lastName: user.lastName,
+        type: 'friendRequest',
         requesteDate: new Date()
       }
       const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;

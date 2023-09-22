@@ -215,7 +215,8 @@ router
             const notificationCommentData = {
                 commentPublisher: req.body.publisher,
                 postID: post._id,
-                commentDate: new Date()
+                commentDate: new Date(),
+                type: 'commentMade'
             };
             io.to(connectedUsers_UserNametoId[post.publisher]).emit("commentMade",notificationCommentData);
             console.log('__________________________________________________________________________________________________________________________________________________\n');
@@ -344,8 +345,8 @@ router.get("/:postID/reacts",async (req,res,next)=>{
                 imgURL: publisherDoc.imgURL,
                 firstName: publisherDoc.firstName,
                 lasName: publisherDoc.lastName
-            }
-
+            },
+            type: 'reactMade' 
         }
         io.to(connectedUsers_UserNametoId[post.publisher]).emit("reactMade",reactData);
         console.log('__________________________________________________________________________________________________________________________________________________\n');
