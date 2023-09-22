@@ -5,6 +5,7 @@ const userController = require('../controllers/usersController');
 const Post = require('../models/Posts');
 const postController = require('../controllers/postsController');
 // const {connectedUsers_IDtoUserName,connectedUsers_UserNametoId} = require('../app');
+const Notification = require('../models/Notification');
 
 
 const utils = require('../lib/utils');
@@ -21,7 +22,7 @@ router
         query.userName = { "$regex": `^${req.query.userName}`, "$options": "i" };
     }
 
-  
+    
 
       // getting the users
       const users = await userController.getUsers(query,req.query.req, req.query.offset? req.query.offset : 0, req.query.limit? req.querylimit : 30);
@@ -210,14 +211,17 @@ router
         type: 'friendRequest',
         requesteDate: new Date()
       }
+      const notificationData = {
+        causativeUser: user.userName,
+        notificationType: 'friendRequest',
+      }
+      const notification = new Notification(notificationData);
+      await notification.save();
+      notificationData.userData = userData;
       const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;
-      const connectedUsers_IDtoUserName = req.app.locals.connectedUsers_IDtoUserName;
-
       // console.log(connectedUsers_UserNametoId);
       // console.log( connectedUsers_IDtoUserName);
-      if(userData && userData.userName){
-        // const socketId = connectedUsers_UserNametoId.get(userData.userName);
-      }
+   
       // console.log(connectedUsers_UserNametoId[friendUserName]);
       io.to(connectedUsers_UserNametoId[userName]).emit("friendRequestSent",userData);
       console.log('__________________________________________________________________________________________________________________________________________________\n');
