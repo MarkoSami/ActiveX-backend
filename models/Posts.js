@@ -49,6 +49,11 @@
                 }],
                 default: []
             },
+
+            postPoints: {
+                type: Number,
+                default: 0
+            },
             reacts: [ReactSchema],     
             comments: [CommentSchema],       
             publishDate: {

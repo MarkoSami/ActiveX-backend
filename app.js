@@ -21,7 +21,9 @@ const signupRouter = require('./routes/signup');
 const {authenticate} = require('./authentication/authenticate')
 const commentRouter = require('./routes/comments');
 const { errorHandler } = require("./lib/errorHandler");
-const { log } = require("console");
+const { log, error } = require("console");
+const ytdl = require('ytdl-core');
+
 
 // const { authenticate } = require('./authentication/authenticate');
 const port = process.env.PORT || '8000';
@@ -87,7 +89,7 @@ let oneToOneRoom = [];//private room bwtewwn 2 persons
 
 let RandomGroupRooms = [];//rooms which are available to join randomly between 2 or more persons
 
-let GroupRooms = [];//private rooms between 2 or more persons
+let GroupRooms = {};//private rooms between 2 or more persons
 
 let connectedUsers_IDtoUserName = {} // socket ids mapped to their usernames
 let connectedUsers_UserNametoId = {} // socket ids mapped to their usernames
@@ -100,6 +102,16 @@ app.use("/users", usersRouter,errorHandler);
 app.use("/posts" ,postsRouter,errorHandler);
 app.use("/comments" ,commentRouter,errorHandler);
 app.use("/feed",feedRouter,errorHandler);
+app.use("/rooms",(req,res,next)=>{
+  
+  const rooms = [];
+  for (const [roomID, videoData] of Object.entries(GroupRooms)) {
+    rooms.push({ roomID, videoData });
+  }
+
+  res.json({rooms,count: rooms.length});
+
+})
 
 // console.log(io.on);
 
@@ -134,7 +146,7 @@ io.on("connection", (socket) => {
 
   socket.on('create_room', () => {
     const roomID = uuidv4();
-    GroupRooms.push(roomID);
+    GroupRooms[roomID] = {};
     socket.join(roomID);
     io.emit('room_created', roomID);
     console.log(`User created and joined a new  room , room ID : ${roomID}`);
@@ -163,10 +175,28 @@ io.on("connection", (socket) => {
   });
 
 
-  socket.on("video_ready", (data) => {
+  socket.on("video_ready", async(data) => {
     console.log(data);
+
+    const info = await ytdl.getInfo(data.video_URL);
+
+    try{
+      const  videoData = {
+        videoURL: data.video_URL,
+        Title: info.videoDetails.title,
+        ThumbnailURL: info.player_response.videoDetails.thumbnail.thumbnails.pop().url,
+      }
+      GroupRooms[data.roomId] = videoData;
+
+    }catch(err){
+      console.log(error);
+    }
+    
+
+    console.log(GroupRooms[data.roomId]);
+
     socket.to(data.roomId).emit("video_ready_to", data.video_URL)
-    console.log(`Video started in room ${data.roomId} , URL ${data.video_URL}`);
+    console.log(`Video ready in room ${data.roomId} , URL ${data.video_URL}`);
     console.log("____________________________________");
 
   })

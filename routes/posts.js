@@ -314,7 +314,10 @@ router.get("/:postID/reacts",async (req,res,next)=>{
         // creating new react
         const newReact = new React({publisher,reactType});
         if(reactIndex !== -1){
-            post.reacts[reactIndex] = newReact
+            
+            post.postPoints -= reactsEnum[post.reacts[reactIndex].reactType];// removing the old post point of the old react
+            post.reacts[reactIndex] = newReact;
+            post.postPoints+= reactsEnum[newReact.reactType];// adding the post points value of the new react type 
             await post.save();
             res.status(200).json({Message: `React has successfully changed to "${reactType}" `});
             return;
@@ -322,7 +325,8 @@ router.get("/:postID/reacts",async (req,res,next)=>{
 
         // creating a new react and updating the post document.
         post.reacts.push(newReact);
-
+        post.postPoints += reactsEnum[reactType];
+        console.log(post.postPoints);
         // saving the post document.
         await post.save();
 
@@ -355,14 +359,19 @@ router.get("/:postID/reacts",async (req,res,next)=>{
 })
 .delete("/:postID/reacts", async (req,res,next)=>{
     if(!req.query.publisher){
-        return;
+        return next();
     }
     const postId = req.params.postID;
     try{
         const result = await Post.updateOne({_id: postId},{
             $pull: {reacts: {publisher: req.query.publisher}}
-        })
-        res.json({message: `React of User ${req.query.publisher} has been removed successfully!`,result})
+        });
+
+        
+
+        
+        
+        res.json({message: `React of User ${req.query.publisher} has been removed successfully!`,result});
     }catch(err){
         console.log(err);
         next(err);
