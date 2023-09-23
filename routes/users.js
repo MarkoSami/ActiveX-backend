@@ -213,6 +213,7 @@ router
       const notificationData = {
         causativeUser: user.userName,
         notificationType: 'friendRequest',
+        notificationReceiver: friendUserName
       }
       const notification = new Notification(notificationData);
       await notification.save();
@@ -415,7 +416,8 @@ router
       const notificationData = {
         causativeUser: user.userName,
         notificationType: 'friendRequestAccepted',
-        userNotified: connectedUsers_UserNametoId[user.userName]? true: false
+        userNotified: connectedUsers_UserNametoId[user.userName]? true: false,
+        notificationReceiver: friendUserName
       };
       const notification = new Notification(notificationData);
       notificationData.userData = userData;
@@ -552,11 +554,14 @@ router
       next(err);
     }
   })
-  .all('/',async(req,res,next)=>{
+  .all('/:userName/:postId',async(req,res,next)=>{
     res.status(403).json({err: `${req.method} is not allowed in ${req.path}`})
   });
 
   
+  router.get('/:userName/notifications',async (req,res,next)=>{
+    const notifications = await Notification.find({});
+  })
 
 
 module.exports = router;

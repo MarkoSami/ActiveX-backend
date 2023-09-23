@@ -46,6 +46,11 @@ const NotificationSchema  = new mongoose.Schema({
             message: `Can't include comment and react type at the same notification`
         }
     },
+    notificationReceiver: {
+        type: String,
+        required: true
+    },
+
     date: {
         type: Date,
         default: () => new Date()

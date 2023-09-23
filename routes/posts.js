@@ -225,7 +225,8 @@ router
             const notificationData = {
                 causativeUser: req.body.publisher,
                 notificationType: 'commentMade',
-                commentId: newComment._id
+                commentId: newComment._id,
+                notificationReceiver: post.publisher
             }
             const notification = new Notification(notificationData);
             await notification.save();
@@ -367,7 +368,8 @@ router.get("/:postID/reacts",async (req,res,next)=>{
         const notificationData = {
             causativeUser: publisher,
             notificationType: 'reactMade',
-            reactType
+            reactType,
+            notificationReceiver: post.publisher
         };
         const notification = new Notification(notificationData);
         await notification.save();
