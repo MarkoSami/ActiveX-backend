@@ -160,7 +160,16 @@ io.on("connection", (socket) => {
 
   socket.on('create_room', () => {
     const roomID = uuidv4();
-    GroupRooms[roomID] = {};
+    GroupRooms[roomID] = {
+      participants: [],
+      owner: connectedUsers_IDtoUserName[socket.id]
+    };
+    console.log(`Rooms: ${GroupRooms[roomID].participants}, owner: ${GroupRooms[roomID].owner}`);
+    console.log(`participants:`);
+    for (const participant in GroupRooms[roomID].participants) {
+      console.log(participant);
+    }
+    
     socket.join(roomID);
     io.emit('room_created', roomID);
     console.log(`User created and joined a new  room , room ID : ${roomID}`);
@@ -171,8 +180,11 @@ io.on("connection", (socket) => {
   socket.on('join_room', (roomId) => {
 
     socket.join(roomId);
+    GroupRooms[roomId].participants.push(connectedUsers_IDtoUserName[socket.id]);
     socket.broadcast.to(roomId).emit('userJoined', socket.id);
     console.log(`User ${socket.id} joined room , room ID: ${roomId}`);
+    console.log(`${GroupRooms[roomId].participants.length} participants:`);
+    console.log(GroupRooms[roomId].participants);
   })
 
   socket.on('shareVideoDetails',(data)=>{

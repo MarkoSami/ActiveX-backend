@@ -51,7 +51,7 @@ const NotificationSchema  = new mongoose.Schema({
         required: true
     },
 
-    date: {
+    notificationDate: {
         type: Date,
         default: () => new Date()
     }

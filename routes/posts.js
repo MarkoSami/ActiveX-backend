@@ -220,7 +220,7 @@ router
             
             const CommentData = {
                 postID: post._id,
-                commentDate: new Date(),
+                notificationDate: new Date(),
             };
             const notificationData = {
                 causativeUser: req.body.publisher,
@@ -357,7 +357,7 @@ router.get("/:postID/reacts",async (req,res,next)=>{
         
         const reactData = {
             postId: post._id,
-            reactDate: new Date(),
+            notificationDate: new Date(),
         }
         const  reactorData =  {
             userName:  publisherDoc.userName,
