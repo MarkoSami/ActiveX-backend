@@ -226,7 +226,7 @@ router
                 causativeUser: req.body.publisher,
                 notificationType: 'commentMade',
                 commentId: newComment._id,
-                notificationReceiver: post.publisher
+                notificationReceiver: post.publisher,
             }
             const notification = new Notification(notificationData);
             await notification.save();
@@ -235,6 +235,7 @@ router
                 userName: publisher.userName,
                 imgURL: publisher.imgURL
             };
+            notificationData.notificationDate =  new Date();
 
             
             io.to(connectedUsers_UserNametoId[post.publisher]).emit("commentMade",notificationData);

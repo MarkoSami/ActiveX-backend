@@ -22,7 +22,7 @@ const signupRouter = require('./routes/signup');
 const {authenticate} = require('./authentication/authenticate')
 const commentRouter = require('./routes/comments');
 const { errorHandler } = require("./lib/errorHandler");
-const { log, error } = require("console");
+const { log, error, Console } = require("console");
 const ytdl = require('ytdl-core');
 
 
@@ -93,7 +93,8 @@ let RandomGroupRooms = [];//rooms which are available to join randomly between 2
 let GroupRooms = {};//private rooms between 2 or more persons
 
 let connectedUsers_IDtoUserName = {} // socket ids mapped to their usernames
-let connectedUsers_UserNametoId = {} // socket ids mapped to their usernames
+let connectedUsers_UserNametoId = {} // socket usernames mapped to their ids
+let connectedUsers_IDtoRoomId = {}
 app.locals.connectedUsers_IDtoUserName = connectedUsers_IDtoUserName;
 app.locals.connectedUsers_UserNametoId = connectedUsers_UserNametoId;
 
@@ -161,9 +162,10 @@ io.on("connection", (socket) => {
   socket.on('create_room', () => {
     const roomID = uuidv4();
     GroupRooms[roomID] = {
-      participants: [],
+      participants: [connectedUsers_IDtoUserName[socket.id]],
       owner: connectedUsers_IDtoUserName[socket.id]
     };
+    connectedUsers_IDtoRoomId[socket.id] = roomID;
     console.log(`Rooms: ${GroupRooms[roomID].participants}, owner: ${GroupRooms[roomID].owner}`);
     console.log(`participants:`);
     for (const participant in GroupRooms[roomID].participants) {
@@ -178,8 +180,17 @@ io.on("connection", (socket) => {
 
 
   socket.on('join_room', (roomId) => {
-
+    if(!GroupRooms[roomId]){
+      console.log(`Can't connect to this room, it may be closed!`);
+      return;
+    }
+    
+    if(GroupRooms[roomId].participants.includes(connectedUsers_IDtoUserName[socket.id])){
+      console.log('user is already connected to this room ');
+      return;
+    }
     socket.join(roomId);
+    connectedUsers_IDtoRoomId[socket.id] = roomId;
     GroupRooms[roomId].participants.push(connectedUsers_IDtoUserName[socket.id]);
     socket.broadcast.to(roomId).emit('userJoined', socket.id);
     console.log(`User ${socket.id} joined room , room ID: ${roomId}`);
@@ -253,12 +264,26 @@ io.on("connection", (socket) => {
   })
 
   socket.on("disconnect",()=>{
+
     const userName = connectedUsers_IDtoUserName[socket.id]; 
+    console.log(`___________________________________\n`);
+    console.log(`User ${userName} has disconnected!`);
+    console.log(`___________________________________\n`);
+
     delete connectedUsers_IDtoUserName[socket.id];
     delete connectedUsers_UserNametoId[userName];
-    console.log(`___________________________________\n`);
-    console.log(`User ${userName} has disconnxected!`);
-    console.log(`___________________________________\n`);
+
+    // delete the user from the room when it disconnects and delete the room if it has become empty 
+    const userRoom = GroupRooms[connectedUsers_IDtoRoomId[socket.id]];
+    if( userRoom && !userRoom.participants.length){
+      GroupRooms[socket.id].participants = userRoom.participant.splice(userRoom.participants.findIndex(connectedUsers_IDtoUserName[socket.id]),1);
+      return;
+    }
+    
+    delete GroupRooms[connectedUsers_IDtoRoomId[socket.id]];
+    console.log(`room with id ${connectedUsers_IDtoRoomId[socket.id]} was deleted!`);
+    
+    
 
   })
 
