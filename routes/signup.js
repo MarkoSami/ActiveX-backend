@@ -21,11 +21,11 @@ router.post('/',async (req,res,next)=>{
     try{
         const createdUser = await User.create(userData);
 
-        // res.cookie('token',createJWT(createdUser().userName),{
-        //      maxAge: 24*60*60*1000, 
-        //      httpOnly: false,
-        //      sameSite: 'None' 
-        //     });
+        res.cookie('token',createJWT(createdUser().userName),{
+             maxAge: 24*60*60*1000, 
+             httpOnly: false,
+             sameSite: 'None' 
+            });
 
         if(createdUser){
             const responseUserData = {
@@ -38,10 +38,10 @@ router.post('/',async (req,res,next)=>{
             res.json({
                 Message: `User signed up successfullt!`,
                 userData: responseUserData,
-                token: jwt,
+                // token: jwt,
             })
         }
-        res.status()
+        
     }catch(err){
         next(err);
     }

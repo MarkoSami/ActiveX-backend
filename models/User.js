@@ -62,21 +62,21 @@ const UserSchema = new mongoose.Schema({
     default: 0,
     min: [0, `influence can't be a negative number.`],
   },
-  feedOffset: {
-    type: Number,
-    default: 0,
-    min: [0, `the offeset of the posts feed can't be a negative number`],
-  },
-  commentsOffset: {
-    type: Number,
-    default: 0,
-    min: [0, `the offeset of the comments feed can't be a negative number`],
-  },
-  friendRequestsOffset: {
-    type: Number,
-    default: 0,
-    min: [0, `the offeset of the friend requests can't be a negative number`],
-  },
+  // feedOffset: {
+  //   type: Number,
+  //   default: 0,
+  //   min: [0, `the offeset of the posts feed can't be a negative number`],
+  // },
+  // commentsOffset: {
+  //   type: Number,
+  //   default: 0,
+  //   min: [0, `the offeset of the comments feed can't be a negative number`],
+  // },
+  // friendRequestsOffset: {
+  //   type: Number,
+  //   default: 0,
+  //   min: [0, `the offeset of the friend requests can't be a negative number`],
+  // },
 });
 
 // hashing the password before saving

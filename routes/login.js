@@ -26,13 +26,15 @@ router.post("/", async (req, res, next) => {
       return;
     }
     const jwt = await createJWT(user.userName);
-    // console.log(jwtCreation);
-    // res.cookie("token", jwtCreation, {
-    //   maxAge: 24 * 60 * 60 * 1000, // Set maxAge in milliseconds (24 hours)
-    //   sameSite: 'None', // Allow cross-site requests for modern browsers
-    // });
-    
-    res.json({Message: `logged  in successfully!`,token: jwt});
+    console.log(jwt);
+    res.cookie("token", jwt, {
+      maxAge: 24 * 60 * 60 * 1000, // Set maxAge in milliseconds (24 hours)
+      sameSite: 'None', // Allow cross-site requests for modern browsers
+      domain: "localhost",
+      secure: true
+    });
+    console.log(`--->cookie has been set with tiken ${jwt}`);
+    res.json({Message: `logged  in successfully!`});
   } catch (err) {
     console.log(err);
     next(err);

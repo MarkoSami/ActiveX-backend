@@ -59,7 +59,8 @@
             publishDate: {
                 type: Date,
                 default: () => new Date()
-            },    comments: [{
+            },   
+             comments: [{
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'Comment',
             }]
@@ -84,5 +85,5 @@
           });
 
 
-        const Post = mongoose.model('Post', PostSchema);
-        module.exports = Post;
+const Post = mongoose.model('Post', PostSchema);
+module.exports = Post;

@@ -98,6 +98,8 @@ app.locals.connectedUsers_UserNametoId = connectedUsers_UserNametoId;
 
 app.use("/login",loginRouter,errorHandler);
 app.use("/signup",signupRouter,errorHandler);
+
+// app.use(authenticate);
 app.use("/users", usersRouter,errorHandler);
 app.use("/posts" ,postsRouter,errorHandler);
 app.use("/comments" ,commentRouter,errorHandler);
@@ -158,14 +160,14 @@ io.on("connection", (socket) => {
   socket.on('join_room', (roomId) => {
 
     socket.join(roomId);
-    io.emit('userJoined',socket.id);
-    console.log(`User joined room , room ID: ${roomId}`);
+    socket.broadcast.to(roomId).emit('userJoined', socket.id);
+    console.log(`User ${socket.id} joined room , room ID: ${roomId}`);
   })
 
   socket.on('shareVideoDetails',(data)=>{
     console.log(`sharing data`);
     io.to(data.userID).emit("video_ready_to", data.videoURL);
-    io.to(data.userID).emit("video_started_to", (data.currentTime));
+    io.to(data.userID).emit("video_started_to", data.currentTime);
     console.log(`Modified new user video time  to ${data.currentTime}`);
   })
 
@@ -212,6 +214,7 @@ io.on("connection", (socket) => {
 
 
   socket.on("send_message", (data) => {
+    data.messageData.userName = connectedUsers_IDtoUserName[socket.id];
     socket.to(data.messageData.room).emit("message_received", data.messageData);
     console.log(data);
     console.log(data.messageData);
