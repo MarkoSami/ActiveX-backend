@@ -240,6 +240,16 @@ io.on("connection", (socket) => {
 
   })
 
+  socket.on("disconnect",()=>{
+    const userName = connectedUsers_IDtoUserName[socket.id]; 
+    delete connectedUsers_IDtoUserName[socket.id];
+    delete connectedUsers_UserNametoId[userName];
+    console.log(`___________________________________\n`);
+    console.log(`User ${userName} has disconnxected!`);
+    console.log(`___________________________________\n`);
+
+  })
+
 });
 
 

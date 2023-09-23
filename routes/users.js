@@ -415,9 +415,9 @@ router
       const notificationData = {
         causativeUser: user.userName,
         notificationType: 'friendRequestAccepted',
+        userNotified: connectedUsers_UserNametoId[user.userName]? true: false
       };
       const notification = new Notification(notificationData);
-      await notification.save();
       notificationData.userData = userData;
       
       io.to(connectedUsers_UserNametoId[friendUserName]).emit('friendRequestAccepted',notificationData);
@@ -425,7 +425,8 @@ router
       console.log(`==> Friend Acception notification has been sent successfully to user: ${friendUserName} with socket id : ${connectedUsers_UserNametoId[friendUserName]}`)
       console.log('__________________________________________________________________________________________________________________________________________________\n');
       
-
+      
+      await notification.save();
       res.json({message: `friend request accepted!`});
     }catch(err){
       console.log(err);
