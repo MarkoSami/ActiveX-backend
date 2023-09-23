@@ -506,8 +506,19 @@ router
     res.status(403).json({err: `${req.method} is forbidden on path: ${req.path}`});
   });
 
-
-
+// handling notifications 
+  router.get('/:userName/notifications',async (req,res,next)=>{
+    try{
+      const notifications = await Notification.find({notificationReceiver: req.params.userName});
+      res.json({count: notifications.length,notificationsData: notifications});
+    }catch(err){
+      console.log(err);
+      next();
+    }
+  }).
+  all('/:userName/:postId',async (req,res,next)=>{
+    res.status(401).json({Message: `The only allowed methos on path: ${req.path} is GET `});
+  })
 
 // handling getting a specific post of a specific user  by username and user id 
   router
@@ -559,9 +570,7 @@ router
   });
 
   
-  router.get('/:userName/notifications',async (req,res,next)=>{
-    const notifications = await Notification.find({});
-  })
+ 
 
 
 module.exports = router;

@@ -116,15 +116,15 @@ app.use("/rooms",(req,res,next)=>{
 
 })
 
-app.get("/notifications",async (req,res,next)=>{
-  try{
-    const notifications = await  Notification.find({});
-    res.json(notifications);
-  }catch(err){
-    console.log(err);
-    next();
-  }
-})
+// app.get("/notifications",async (req,res,next)=>{
+//   try{
+//     const notifications = await  Notification.find({});
+//     res.json(notifications);
+//   }catch(err){
+//     console.log(err);
+//     next();
+//   }
+// })
 
 // console.log(io.on);
 
