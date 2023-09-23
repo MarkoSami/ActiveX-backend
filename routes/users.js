@@ -204,16 +204,16 @@ router
       
         
       const userData = {
-        userName: user.userName,
-        userImgURL: user.imgURL,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        userName: friend.userName,
+        userImgURL: friend.imgURL,
+        firstName: friend.firstName,
+        lastName: friend.lastName,
         requesteDate: new Date()
       }
       const notificationData = {
-        causativeUser: user.userName,
+        causativeUser: friendUserName,
         notificationType: 'friendRequest',
-        notificationReceiver: friendUserName
+        notificationReceiver: user.userName
       }
       const notification = new Notification(notificationData);
       await notification.save();
