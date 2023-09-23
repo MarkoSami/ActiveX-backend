@@ -9,6 +9,7 @@ const postController = require('../controllers/postsController');
 const { reactsEnum } = require('../models/ReactsEnum');
 const utils = require('../lib/utils');
 const {User} = require('../models/User');
+const Notification = require('../models/Notification');
 
 router
     .get('/', async (req, res, next) => {
@@ -199,10 +200,14 @@ router
             const newComment = new Comment(commentData);
             await newComment.save();
             const post = await Post.findById(postId);
-
+            const publisher = await User.findOne({userName: req.body.publisher});
             // validating the post existence
             if(!post){
                 res.status(404).json({err: `Post not found!`});
+                return next();
+            }
+            if(!publisher){
+                res.status(400).json({Message: `Publisher username is not correct! `});
                 return next();
             }
             const result = await post.comments.push(newComment);
@@ -212,13 +217,26 @@ router
             // pushing notification to the client
             const io = req.app.locals.io;
             const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;
-            const notificationCommentData = {
-                commentPublisher: req.body.publisher,
+            
+            const CommentData = {
                 postID: post._id,
                 commentDate: new Date(),
-                type: 'commentMade'
             };
-            io.to(connectedUsers_UserNametoId[post.publisher]).emit("commentMade",notificationCommentData);
+            const notificationData = {
+                causativeUser: req.body.publisher,
+                notificationType: 'commentMade',
+                commentId: newComment._id
+            }
+            const notification = new Notification(notificationData);
+            await notification.save();
+            notificationData.commentData = CommentData;
+            notificationData.publisherData = {
+                userName: publisher.userName,
+                imgURL: publisher.imgURL
+            };
+
+            
+            io.to(connectedUsers_UserNametoId[post.publisher]).emit("commentMade",notificationData);
             console.log('__________________________________________________________________________________________________________________________________________________\n');
             console.log(`==> Comment publishing  notification has been sent successfully to user: ${post.publisher} with socket id : ${connectedUsers_UserNametoId[post.publisher]} made by user: ${req.body.publisher}`);
             console.log('__________________________________________________________________________________________________________________________________________________\n');
@@ -338,17 +356,25 @@ router.get("/:postID/reacts",async (req,res,next)=>{
         
         const reactData = {
             postId: post._id,
-            reactType,
             reactDate: new Date(),
-            reactorData: {
-                userName:  publisherDoc.userName,
-                imgURL: publisherDoc.imgURL,
-                firstName: publisherDoc.firstName,
-                lasName: publisherDoc.lastName
-            },
-            type: 'reactMade' 
         }
-        io.to(connectedUsers_UserNametoId[post.publisher]).emit("reactMade",reactData);
+        const  reactorData =  {
+            userName:  publisherDoc.userName,
+            imgURL: publisherDoc.imgURL,
+            firstName: publisherDoc.firstName,
+            lasName: publisherDoc.lastName
+        };
+        const notificationData = {
+            causativeUser: publisher,
+            notificationType: 'reactMade',
+            reactType
+        };
+        const notification = new Notification(notificationData);
+        await notification.save();
+        console.log('notification saved successfully!');
+        notificationData.reactData = reactData;
+        notificationData.reactorData = reactData;
+        io.to(connectedUsers_UserNametoId[post.publisher]).emit("reactMade",notificationData);
         console.log('__________________________________________________________________________________________________________________________________________________\n');
         console.log(`Sent user react notification to user ${post.publisher} with socketId: ${connectedUsers_UserNametoId[post.publisher]} on post with if : ${post._id} by user ${publisher} with socketId: ${connectedUsers_UserNametoId[publisher]} `);
         console.log('__________________________________________________________________________________________________________________________________________________\n');

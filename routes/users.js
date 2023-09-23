@@ -208,7 +208,6 @@ router
         userImgURL: user.imgURL,
         firstName: user.firstName,
         lastName: user.lastName,
-        type: 'friendRequest',
         requesteDate: new Date()
       }
       const notificationData = {
@@ -223,7 +222,7 @@ router
       // console.log( connectedUsers_IDtoUserName);
    
       // console.log(connectedUsers_UserNametoId[friendUserName]);
-      io.to(connectedUsers_UserNametoId[userName]).emit("friendRequestSent",userData);
+      io.to(connectedUsers_UserNametoId[userName]).emit("friendRequestSent",notificationData);
       console.log('__________________________________________________________________________________________________________________________________________________\n');
       console.log(`==> Friend request notification has been sent successfully to user: ${userName} with socket id : ${connectedUsers_UserNametoId[userName]}`)
       console.log('__________________________________________________________________________________________________________________________________________________\n');
@@ -410,12 +409,23 @@ router
         confirmationDate: new Date()
       };
       const io = req.app.locals.io;
+      const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;
       // todo2
-      io.to(connectedUsers_UserNametoId[friendUserName]).emit('friendRequestAccepted',userData);
+
+      const notificationData = {
+        causativeUser: user.userName,
+        notificationType: 'friendRequestAccepted',
+      };
+      const notification = new Notification(notificationData);
+      await notification.save();
+      notificationData.userData = userData;
+      
+      io.to(connectedUsers_UserNametoId[friendUserName]).emit('friendRequestAccepted',notificationData);
       console.log('__________________________________________________________________________________________________________________________________________________\n');
       console.log(`==> Friend Acception notification has been sent successfully to user: ${friendUserName} with socket id : ${connectedUsers_UserNametoId[friendUserName]}`)
       console.log('__________________________________________________________________________________________________________________________________________________\n');
-        
+      
+
       res.json({message: `friend request accepted!`});
     }catch(err){
       console.log(err);

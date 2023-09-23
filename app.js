@@ -10,6 +10,7 @@ const { v4: uuidv4 } = require('uuid');
 const utils = require('./lib/utils');
 require('dotenv').config();
 const {getio,init} = require('./bin/sockets');
+const Notification = require('./models/Notification');
 
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
@@ -113,6 +114,16 @@ app.use("/rooms",(req,res,next)=>{
 
   res.json({rooms,count: rooms.length});
 
+})
+
+app.get("/notifications",async (req,res,next)=>{
+  try{
+    const notifications = await  Notification.find({});
+    res.json(notifications);
+  }catch(err){
+    console.log(err);
+    next();
+  }
 })
 
 // console.log(io.on);
