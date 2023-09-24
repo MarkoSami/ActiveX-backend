@@ -324,7 +324,7 @@ router.get("/:postID/reacts",async (req,res,next)=>{
         }
 
         // checking for the existence of the post publisher
-        const publisherDoc = User.findOne({userName: publisher});
+        const publisherDoc = await User.findOne({userName: publisher});
         if(!publisherDoc){
             return res.status(404).json({Message: `Publisher was not found!`});
         }
@@ -378,7 +378,9 @@ router.get("/:postID/reacts",async (req,res,next)=>{
         notificationData.userData = userData;
         notificationData.notificationDate = new Date();
 
+        console.log(notificationData.userData);
         io.to(connectedUsers_UserNametoId[post.publisher]).emit("reactMade",notificationData);
+
         console.log('__________________________________________________________________________________________________________________________________________________\n');
         console.log(`Sent user react notification to user ${post.publisher} with socketId: ${connectedUsers_UserNametoId[post.publisher]} on post with if : ${post._id} by user ${publisher} with socketId: ${connectedUsers_UserNametoId[publisher]} `);
         console.log('__________________________________________________________________________________________________________________________________________________\n');
