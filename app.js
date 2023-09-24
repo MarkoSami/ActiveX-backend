@@ -184,7 +184,8 @@ io.on("connection", (socket) => {
       console.log(`Can't connect to this room, it may be closed!`);
       return;
     }
-    
+
+    console.log(GroupRooms[roomId].participants);
     if(GroupRooms[roomId].participants.includes(connectedUsers_IDtoUserName[socket.id])){
       console.log('user is already connected to this room ');
       return;
@@ -206,6 +207,10 @@ io.on("connection", (socket) => {
   })
 
   socket.on("video_started", (data) => {
+    if(GroupRooms[data.roomId].owner !== connectedUsers_IDtoUserName[socket.id] ){
+      console.log(`User is unuthorized to take this action!`);
+      return;
+    }
     socket.to(data.roomId).emit("video_started_to", (data.currentTime));
     console.log("video_started_to_client" + data.roomId);
     console.log("____________________________________");
@@ -213,6 +218,10 @@ io.on("connection", (socket) => {
 
 
   socket.on("video_paused", (roomId) => {
+    if(GroupRooms[roomId].owner !== connectedUsers_IDtoUserName[socket.id] ){
+      console.log(`User is unuthorized to take this action!`);
+      return;
+    }
     socket.to(roomId).emit("video_paused_to");
     console.log("video_paused_to_client" + roomId);
     console.log("____________________________________");
@@ -221,7 +230,10 @@ io.on("connection", (socket) => {
 
   socket.on("video_ready", async(data) => {
     console.log(data);
-
+    if(GroupRooms[data.roomId].owner !== connectedUsers_IDtoUserName[socket.id] ){
+      console.log(`User is unuthorized to take this action!`);
+      return;
+    }
     const info = await ytdl.getInfo(data.video_URL);
 
     try{
@@ -277,6 +289,9 @@ io.on("connection", (socket) => {
     const userRoom = GroupRooms[connectedUsers_IDtoRoomId[socket.id]];
     if( userRoom && !userRoom.participants.length){
       GroupRooms[socket.id].participants = userRoom.participant.splice(userRoom.participants.findIndex(connectedUsers_IDtoUserName[socket.id]),1);
+      if(userRoom.owner  === connectedUsers_IDtoUserName[socket.id]){
+        GroupRooms[socket.id].owner = userRoom.participants[0];
+      }
       return;
     }
     

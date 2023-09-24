@@ -219,21 +219,23 @@ router
             const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;
             
             const CommentData = {
-                postID: post._id,
-                notificationDate: new Date(),
+                
             };
             const notificationData = {
                 causativeUser: req.body.publisher,
                 notificationType: 'commentMade',
                 commentId: newComment._id,
                 notificationReceiver: post.publisher,
+                postId: post._id
             }
             const notification = new Notification(notificationData);
             await notification.save();
-            notificationData.commentData = CommentData;
-            notificationData.publisherData = {
+            
+
+            notificationData.postID = post._id;
+            notificationData.userData = {
                 userName: publisher.userName,
-                imgURL: publisher.imgURL
+                imgURL: publisher.imgURL,
             };
             notificationData.notificationDate =  new Date();
 
@@ -255,7 +257,7 @@ router
     .delete('/:postId/comments',async (req,res,next)=>{
         const postId = req.params.postId;
         if(!postId){
-            res.status(404).json({err: `POst not found!`});
+            res.status(404).json({err: `Post not found!`});
             return next();
         }
         try{
@@ -356,27 +358,29 @@ router.get("/:postID/reacts",async (req,res,next)=>{
         const io = req.app.locals.io;
         const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;
         
-        const reactData = {
-            postId: post._id,
-            notificationDate: new Date(),
-        }
-        const  reactorData =  {
+        // const reactData = {
+        //     postId: post._id,
+        // }
+        const  userData =  {
             userName:  publisherDoc.userName,
             imgURL: publisherDoc.imgURL,
             firstName: publisherDoc.firstName,
-            lasName: publisherDoc.lastName
+            lasName: publisherDoc.lastName,
         };
         const notificationData = {
             causativeUser: publisher,
             notificationType: 'reactMade',
             reactType,
-            notificationReceiver: post.publisher
+            notificationReceiver: post.publisher,
+            postId: postID
         };
         const notification = new Notification(notificationData);
         await notification.save();
         console.log('notification saved successfully!');
-        notificationData.reactData = reactData;
-        notificationData.reactorData = reactData;
+
+        notificationData.userData = userData;
+        notificationData.notificationDate = new Date();
+
         io.to(connectedUsers_UserNametoId[post.publisher]).emit("reactMade",notificationData);
         console.log('__________________________________________________________________________________________________________________________________________________\n');
         console.log(`Sent user react notification to user ${post.publisher} with socketId: ${connectedUsers_UserNametoId[post.publisher]} on post with if : ${post._id} by user ${publisher} with socketId: ${connectedUsers_UserNametoId[publisher]} `);

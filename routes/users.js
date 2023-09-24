@@ -208,7 +208,6 @@ router
         userImgURL: friend.imgURL,
         firstName: friend.firstName,
         lastName: friend.lastName,
-        requesteDate: new Date()
       }
       const notificationData = {
         causativeUser: friendUserName,
@@ -218,6 +217,8 @@ router
       const notification = new Notification(notificationData);
       await notification.save();
       notificationData.userData = userData;
+      notificationData.notificationDate = new Date()
+      
       const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;
       // console.log(connectedUsers_UserNametoId);
       // console.log( connectedUsers_IDtoUserName);
@@ -407,7 +408,6 @@ router
         imgURL: friend.imgURL,
         firstName: friend.firstName,
         lastName: friend.lastName,
-        confirmationDate: new Date()
       };
       const io = req.app.locals.io;
       const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;
@@ -421,6 +421,7 @@ router
       };
       const notification = new Notification(notificationData);
       notificationData.userData = userData;
+      notificationData.notificationDate = new Date();
       
       io.to(connectedUsers_UserNametoId[friendUserName]).emit('friendRequestAccepted',notificationData);
       console.log('__________________________________________________________________________________________________________________________________________________\n');
