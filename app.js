@@ -95,6 +95,15 @@ let GroupRooms = {};//private rooms between 2 or more persons
 let connectedUsers_IDtoUserName = {} // socket ids mapped to their usernames
 let connectedUsers_UserNametoId = {} // socket usernames mapped to their ids
 let connectedUsers_IDtoRoomId = {}
+
+class Room{
+  constructor(owner){
+    this.participants = [];
+    this.owner = owner;
+    this.videoData = {}
+  }
+}
+
 app.locals.connectedUsers_IDtoUserName = connectedUsers_IDtoUserName;
 app.locals.connectedUsers_UserNametoId = connectedUsers_UserNametoId;
 
@@ -106,6 +115,7 @@ app.use("/users", usersRouter,errorHandler);
 app.use("/posts" ,postsRouter,errorHandler);
 app.use("/comments" ,commentRouter,errorHandler);
 app.use("/feed",feedRouter,errorHandler);
+
 app.use("/rooms",(req,res,next)=>{
   
   const rooms = [];
@@ -117,17 +127,7 @@ app.use("/rooms",(req,res,next)=>{
 
 })
 
-// app.get("/notifications",async (req,res,next)=>{
-//   try{
-//     const notifications = await  Notification.find({});
-//     res.json(notifications);
-//   }catch(err){
-//     console.log(err);
-//     next();
-//   }
-// })
 
-// console.log(io.on);
 
 io.on("connection", (socket) => {
   const userName = socket.handshake.query.userName;
@@ -161,11 +161,10 @@ io.on("connection", (socket) => {
 
   socket.on('create_room', () => {
     const roomID = uuidv4();
-    GroupRooms[roomID] = {
-      participants: [connectedUsers_IDtoUserName[socket.id]],
-      owner: connectedUsers_IDtoUserName[socket.id]
-    };
+    GroupRooms[roomID] = new Room(connectedUsers_IDtoUserName[socket.id]); 
+      
     connectedUsers_IDtoRoomId[socket.id] = roomID;
+
     console.log(`Rooms: ${GroupRooms[roomID].participants}, owner: ${GroupRooms[roomID].owner}`);
     console.log(`participants:`);
     for (const participant in GroupRooms[roomID].participants) {
@@ -229,7 +228,7 @@ io.on("connection", (socket) => {
 
 
   socket.on("video_ready", async(data) => {
-    console.log(data);
+    console.log(`===========>`+data.roomId);
     if(GroupRooms[data.roomId].owner !== connectedUsers_IDtoUserName[socket.id] ){
       console.log(`User is unuthorized to take this action!`);
       return;
@@ -242,7 +241,7 @@ io.on("connection", (socket) => {
         Title: info.videoDetails.title,
         ThumbnailURL: info.player_response.videoDetails.thumbnail.thumbnails.pop().url,
       }
-      GroupRooms[data.roomId] = videoData;
+      GroupRooms[data.roomId].videoData = videoData;
 
     }catch(err){
       console.log(error);
@@ -284,6 +283,7 @@ io.on("connection", (socket) => {
 
     delete connectedUsers_IDtoUserName[socket.id];
     delete connectedUsers_UserNametoId[userName];
+    delete connectedUsers_IDtoRoomId[socket.id];
 
     // delete the user from the room when it disconnects and delete the room if it has become empty 
     const userRoom = GroupRooms[connectedUsers_IDtoRoomId[socket.id]];

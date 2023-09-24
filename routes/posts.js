@@ -218,9 +218,7 @@ router
             const io = req.app.locals.io;
             const connectedUsers_UserNametoId = req.app.locals.connectedUsers_UserNametoId;
             
-            const CommentData = {
-                
-            };
+            
             const notificationData = {
                 causativeUser: req.body.publisher,
                 notificationType: 'commentMade',
@@ -239,7 +237,6 @@ router
             };
             notificationData.notificationDate =  new Date();
 
-            
             io.to(connectedUsers_UserNametoId[post.publisher]).emit("commentMade",notificationData);
             console.log('__________________________________________________________________________________________________________________________________________________\n');
             console.log(`==> Comment publishing  notification has been sent successfully to user: ${post.publisher} with socket id : ${connectedUsers_UserNametoId[post.publisher]} made by user: ${req.body.publisher}`);
