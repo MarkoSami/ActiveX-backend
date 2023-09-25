@@ -323,7 +323,9 @@ io.on("connection", (socket) => {
 
       // it is not the owner just delete it from participants
       GroupRooms[userRoomId].participants.splice(
-        GroupRooms[userRoomId].participants.findIndex(userName),
+        GroupRooms[userRoomId].participants.findIndex(
+          (participant) => participant.userName === userName
+        ),
         1
       );
     }
