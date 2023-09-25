@@ -6,7 +6,7 @@ module.exports = {
         // start socket.io server and cache io value
         io = require('socket.io')(server, {
           cors: {
-            origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
+            origin: ['http://localhost:5173', 'http://localhost:5174', 'https://screenmates-r78w.vercel.app'],
             methods: ['GET', 'POST'],
             allowedHeaders: ['my-custom-header'],
             credentials: true
