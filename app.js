@@ -50,6 +50,7 @@ app.use(cors({
   origin: ['http://localhost:5173','http://localhost:8000'], 
   credentials: true
 }));
+
 // app.use("/", indexRouter);
 // app.use("/upload", async (req, res, next) => {
 //   const result = await cloudinaryLib.uploadImage("img.png");
@@ -104,6 +105,16 @@ class Room{
   }
 }
 
+function logSocketEvent(message){
+  let  underScores = "";
+  for(let i =0 ; i < message.length ; i++){
+    underScores+= '_';
+  }
+  console.log(underScores+'\n');
+  console.log(message);
+  console.log(underScores+'\n');
+}
+
 app.locals.connectedUsers_IDtoUserName = connectedUsers_IDtoUserName;
 app.locals.connectedUsers_UserNametoId = connectedUsers_UserNametoId;
 
@@ -131,12 +142,15 @@ app.use("/rooms",(req,res,next)=>{
 
 io.on("connection", (socket) => {
   const userName = socket.handshake.query.userName;
-  console.log('______________________________________________________________________\n');
-  console.log(`User ${userName} with socket id: ${socket.id} connected to the server!`);
-  console.log('______________________________________________________________________\n');
-  connectedUsers_IDtoUserName[socket.id] = userName;
-  connectedUsers_UserNametoId[userName] = socket.id;
-  console.log(connectedUsers_UserNametoId);
+  
+  if(!connectedUsers_UserNametoId[userName]){
+    connectedUsers_IDtoUserName[socket.id] = userName;
+    connectedUsers_UserNametoId[userName] = socket.id;
+    console.log(connectedUsers_UserNametoId);
+    console.log('______________________________________________________________________\n');
+    console.log(`User ${userName} with socket id: ${socket.id} connected to the server!`);
+    console.log('______________________________________________________________________\n');
+  }
   
   // join new room event 
   socket.on("join_random_room", async () => {
@@ -180,7 +194,7 @@ io.on("connection", (socket) => {
 
   socket.on('join_room', (roomId) => {
     if(!GroupRooms[roomId]){
-      console.log(`Can't connect to this room, it may be closed!`);
+      console.log(`Can't connect to th already room, it may be closed!`);
       return;
     }
 
@@ -274,29 +288,65 @@ io.on("connection", (socket) => {
 
   })
 
+  //__________________________________________
+  // handles user disconnection
+
   socket.on("disconnect",()=>{
 
-    const userName = connectedUsers_IDtoUserName[socket.id]; 
-    console.log(`___________________________________\n`);
-    console.log(`User ${userName} has disconnected!`);
-    console.log(`___________________________________\n`);
+    const userName = connectedUsers_IDtoUserName[socket.id]; // getting the user name of the user by its socket id 
+    logSocketEvent(`User ${userName} has disconnected!`);
+    const userRoomId = connectedUsers_IDtoRoomId[socket.id];
 
+    
+
+    // delete the user from the room when it disconnects and delete the room if it has become empty 
+    if(userRoomId){
+
+      // if the user is thw owner of the room choose another user in the room to be new owner or delete room 
+      if(GroupRooms[userRoomId].owner === userName){
+        // if the room  has no more participants than the user then delete 
+        if(!GroupRooms[userRoomId].participants.length){
+          delete GroupRooms[userRoomId];
+          logSocketEvent(`room with id ${connectedUsers_IDtoRoomId[socket.id]} was deleted!`);
+          return;
+        }else{
+          // else make the owner 
+          GroupRooms[userRoomId].owner = GroupRooms[userRoomId].participants[0];
+          GroupRooms[userRoomId].participants.splice(0,1);
+          logSocketEvent(`Ownership of room: ${userRoomId} has been transferred ot user: ${GroupRooms[userRoomId].owner}! `)
+          return;
+        }
+      }
+
+      // it is not the owner just delete it from participants
+      GroupRooms[userRoomId].participants.splice(GroupRooms[userRoomId].participants.findIndex(userName),1);
+          
+    }
+
+    // deleting user from the records
     delete connectedUsers_IDtoUserName[socket.id];
     delete connectedUsers_UserNametoId[userName];
     delete connectedUsers_IDtoRoomId[socket.id];
 
-    // delete the user from the room when it disconnects and delete the room if it has become empty 
-    const userRoom = GroupRooms[connectedUsers_IDtoRoomId[socket.id]];
-    if( userRoom && !userRoom.participants.length){
-      GroupRooms[socket.id].participants = userRoom.participant.splice(userRoom.participants.findIndex(connectedUsers_IDtoUserName[socket.id]),1);
-      if(userRoom.owner  === connectedUsers_IDtoUserName[socket.id]){
-        GroupRooms[socket.id].owner = userRoom.participants[0];
-      }
-      return;
-    }
+
+
+
+
+    // const userRoom = GroupRooms[connectedUsers_IDtoRoomId[socket.id]];
+    // if( userRoom && userRoom.participants.length){
+    //   GroupRooms[socket.id].participants = userRoom.participant.splice(userRoom.participants.findIndex(connectedUsers_IDtoUserName[socket.id]),1);
+    //   if(!GroupRooms[socket.id].participants.length){
+    //     delete GroupRooms[connectedUsers_IDtoRoomId[socket.id]];
+    //     console.log(`room with id ${connectedUsers_IDtoRoomId[socket.id]} was deleted!`);
+    //     return;
+    //   }
+    //   if(userRoom.owner  === connectedUsers_IDtoUserName[socket.id]){
+    //     GroupRooms[socket.id].owner = userRoom.participants[0];
+    //   }
+    //   return;
+    // }
     
-    delete GroupRooms[connectedUsers_IDtoRoomId[socket.id]];
-    console.log(`room with id ${connectedUsers_IDtoRoomId[socket.id]} was deleted!`);
+    // delete GroupRooms[connectedUsers_IDtoRoomId[socket.id]];
     
     
 

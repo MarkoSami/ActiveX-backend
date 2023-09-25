@@ -98,5 +98,6 @@ const getUsers = async (querry,vierwerUserName,offset,limit) => {
 };
 
 module.exports = {
-    getUsers
+    getUsers,
+    getUsersPipeline
 };

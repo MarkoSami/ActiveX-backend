@@ -510,7 +510,37 @@ router
 // handling notifications 
   router.get('/:userName/notifications',async (req,res,next)=>{
     try{
-      const notifications = await Notification.find({notificationReceiver: req.params.userName});
+      const notifications = await Notification.aggregate(
+        [
+          {
+            $match: {notificationReceiver: req.params.userName}
+          },
+          {
+            $lookup: {
+              from: "users", // The name of the target collection
+              localField: "causativeUser", // The field from the current collection
+              foreignField: "userName", // The field from the target collection
+              as: "userData", // The alias for the joined data,
+              pipeline: [
+                {
+                  $project: {
+                    _id:0,
+                    userName: 1,
+                    imgURL: 1
+                  },
+                  
+                },
+                {
+                  $limit:1
+                }
+              ]
+            },
+          },
+          
+        ]
+      
+      );
+
       res.json({count: notifications.length,notificationsData: notifications});
     }catch(err){
       console.log(err);
