@@ -51,6 +51,7 @@ app.use(
       "https://screenmates-uvjd.vercel.app",
       "http://localhost:8000",
       "http://localhost:4173",
+      "https://screenmates-beta-vv.onrender.com",
     ],
     credentials: true,
   })
