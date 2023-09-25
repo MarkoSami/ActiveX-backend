@@ -48,7 +48,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://screenmates-uvjd.vercel.app/",
+      "https://screenmates-uvjd.vercel.app",
       "http://localhost:8000",
       "http://localhost:4173",
     ],
