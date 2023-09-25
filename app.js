@@ -222,7 +222,7 @@ io.on("connection", (socket) => {
   socket.on("shareVideoDetails", (data) => {
     console.log(`sharing data`);
     io.to(data.userID).emit("video_ready_to", data.videoURL);
-    io.to(data.userID).emit("video_started_to", data.currentTime);
+    // io.to(data.userID).emit("video_started_to", data.currentTime);
     console.log(`Modified new user video time  to ${data.currentTime}`);
   });
 
