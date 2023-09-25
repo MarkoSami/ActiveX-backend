@@ -131,8 +131,8 @@ app.use("/feed", feedRouter, errorHandler);
 
 app.use("/rooms", (req, res, next) => {
   const rooms = [];
-  for (const [roomID, videoData] of Object.entries(GroupRooms)) {
-    rooms.push({ roomID, videoData });
+  for (const [roomID, roomData] of Object.entries(GroupRooms)) {
+    rooms.push({ roomID, roomData });
   }
 
   res.json({ rooms, count: rooms.length });
@@ -141,7 +141,7 @@ app.use("/rooms", (req, res, next) => {
 io.on("connection", (socket) => {
   const userName = socket.handshake.query.userName;
 
-  if (!connectedUsers_UserNametoId[userName]) {
+  if (!connectedUsers_UserNametoId[userName] && userName) {
     connectedUsers_IDtoUserName[socket.id] = userName;
     connectedUsers_UserNametoId[userName] = socket.id;
     console.log(connectedUsers_UserNametoId);
