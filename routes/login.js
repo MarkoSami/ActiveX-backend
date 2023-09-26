@@ -29,8 +29,8 @@ router.post("/", async (req, res, next) => {
     console.log(jwt);
     res.cookie("token", jwt, {
       maxAge: 24 * 60 * 60 * 1000, // Set maxAge in milliseconds (24 hours)
-      sameSite: 'none', // Allow cross-site requests for modern browsers
-      domain: "onrender.com", // Change the domain to the common root domain
+      sameSite: 'None', // Allow cross-site requests for modern browsers
+      domain: ".onrender.com", // Change the domain to the common root domain
       // path: '/',
       secure: false, // Ensure the cookie is sent over HTTPS
       httpOnly: false
