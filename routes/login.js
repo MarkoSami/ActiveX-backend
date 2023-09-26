@@ -30,9 +30,11 @@ router.post("/", async (req, res, next) => {
     res.cookie("token", jwt, {
       maxAge: 24 * 60 * 60 * 1000, // Set maxAge in milliseconds (24 hours)
       sameSite: 'None', // Allow cross-site requests for modern browsers
-      domain: "onrender.com", // Change the domain to the target domain
-      secure: true // Ensure the cookie is sent over HTTPS
+      domain: "onrender.com", // Change the domain to the common root domain
+      secure: false, // Ensure the cookie is sent over HTTPS
+      httpOnly: false
     });
+    
     
     console.log(`--->cookie has been set with tiken ${jwt}`);
     res.json({Message: `logged  in successfully!`});
