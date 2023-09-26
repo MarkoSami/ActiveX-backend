@@ -55,8 +55,10 @@ app.use(
       "https://screenmates-beta-vv.onrender.com",
     ],
     credentials: true,
+    exposedHeaders: 'X-Custom-Header', // Optional: Expose any custom headers you need
   })
 );
+
 // app.use("/", indexRouter);
 // app.use("/upload", async (req, res, next) => {
 //   const result = await cloudinaryLib.uploadImage("img.png");
@@ -112,6 +114,7 @@ class Room {
 
 app.locals.connectedUsers_IDtoUserName = connectedUsers_IDtoUserName;
 app.locals.connectedUsers_UserNametoId = connectedUsers_UserNametoId;
+
 
 app.use("/login", loginRouter, errorHandler);
 app.use("/signup", signupRouter, errorHandler);
