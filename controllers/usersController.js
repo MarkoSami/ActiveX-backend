@@ -6,7 +6,9 @@ const mongoose = require('mongoose');
 // };
 
 const getUsersPipeline = (query,vierwerUserName,offset ,limit ) => {
-     
+  
+  limit = (!limit || limit>30) ? +30 : +limit; // validating the limit value
+  offset = (!offset || offset <=0 )? 0 : +offset; 
   return [
       {
         $skip: (!offset)?  0 :(offset-1)*limit
@@ -86,7 +88,7 @@ const getUsersPipeline = (query,vierwerUserName,offset ,limit ) => {
         }
       },
       {
-        $limit: limit? limit : 20
+        $limit: limit? limit : +30
       }
     ]
       ;

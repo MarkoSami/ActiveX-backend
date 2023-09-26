@@ -24,9 +24,10 @@ router
         query,
         req.query.req,
         req.query.offset ? req.query.offset : 0,
-        req.query.limit ? req.querylimit : 30
-      );
-
+        req.query.limit ? req.query.limit : 30
+        );
+        
+        console.log(`===>offset: ${req.query.offset}, limit: ${req.query.limit}`);
       res.status(200).json({
         count: users.length,
         users,

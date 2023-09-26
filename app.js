@@ -25,6 +25,7 @@ const { errorHandler } = require("./lib/errorHandler");
 const { log, error, Console } = require("console");
 const ytdl = require("ytdl-core");
 
+
 // const { authenticate } = require('./authentication/authenticate');
 const port = process.env.PORT || "8000";
 
@@ -107,15 +108,7 @@ class Room {
   }
 }
 
-function logSocketEvent(message) {
-  let underScores = "";
-  for (let i = 0; i < message.length; i++) {
-    underScores += "_";
-  }
-  console.log(underScores + "\n");
-  console.log(message);
-  console.log(underScores + "\n");
-}
+
 
 app.locals.connectedUsers_IDtoUserName = connectedUsers_IDtoUserName;
 app.locals.connectedUsers_UserNametoId = connectedUsers_UserNametoId;
@@ -123,7 +116,7 @@ app.locals.connectedUsers_UserNametoId = connectedUsers_UserNametoId;
 app.use("/login", loginRouter, errorHandler);
 app.use("/signup", signupRouter, errorHandler);
 
-// app.use(authenticate);
+app.use(authenticate);
 app.use("/users", usersRouter, errorHandler);
 app.use("/posts", postsRouter, errorHandler);
 app.use("/comments", commentRouter, errorHandler);
@@ -141,20 +134,19 @@ app.use("/rooms", (req, res, next) => {
 io.on("connection", (socket) => {
   const userName = socket.handshake.query.userName;
 
-  if (!connectedUsers_UserNametoId[userName] && userName) {
-    connectedUsers_IDtoUserName[socket.id] = userName;
-    connectedUsers_UserNametoId[userName] = socket.id;
-    console.log(connectedUsers_UserNametoId);
-    console.log(
-      "______________________________________________________________________\n"
-    );
-    console.log(
-      `User ${userName} with socket id: ${socket.id} connected to the server!`
-    );
-    console.log(
-      "______________________________________________________________________\n"
-    );
+  // checking if the user is already connected or the userName is incorrect or undefined
+  if(connectedUsers_UserNametoId[userName] || !userName){
+    socket.disconnect();
+    utils.logSocketEvent(`User has been prevented from connecting to ther server because ${userName? `He is already connected `: `username is not correct`}!`);
+    return;
   }
+
+  // adding the user to the rooms records
+  connectedUsers_IDtoUserName[socket.id] = userName;
+  connectedUsers_UserNametoId[userName] = socket.id;
+  console.log(connectedUsers_UserNametoId);
+  
+  utils.logSocketEvent(`User ${userName} with socket id: ${socket.id} connected to the server!`);
 
   // join new room event
   socket.on("join_random_room", async () => {
@@ -208,7 +200,7 @@ io.on("connection", (socket) => {
       console.log("user is already connected to this room ");
       return;
     }
-    socket.join(roomId);
+    socket.join(roomId,{owner: GroupRooms[roomId].owner});
     connectedUsers_IDtoRoomId[socket.id] = roomId;
     GroupRooms[roomId].participants.push(
       connectedUsers_IDtoUserName[socket.id]
@@ -297,7 +289,7 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     const userName = connectedUsers_IDtoUserName[socket.id]; // getting the user name of the user by its socket id
-    logSocketEvent(`User ${userName} has disconnected!`);
+    utils.logSocketEvent(`User ${userName} has disconnected!`);
     const userRoomId = connectedUsers_IDtoRoomId[socket.id];
 
     // delete the user from the room when it disconnects and delete the room if it has become empty
@@ -307,7 +299,7 @@ io.on("connection", (socket) => {
         // if the room  has no more participants than the user then delete
         if (!GroupRooms[userRoomId].participants.length) {
           delete GroupRooms[userRoomId];
-          logSocketEvent(
+          utils.logSocketEvent(
             `room with id ${connectedUsers_IDtoRoomId[socket.id]} was deleted!`
           );
           return;
@@ -315,7 +307,7 @@ io.on("connection", (socket) => {
           // else make the owner
           GroupRooms[userRoomId].owner = GroupRooms[userRoomId].participants[0];
           GroupRooms[userRoomId].participants.splice(0, 1);
-          logSocketEvent(
+          utils.logSocketEvent(
             `Ownership of room: ${userRoomId} has been transferred ot user: ${GroupRooms[userRoomId].owner}! `
           );
           return;
