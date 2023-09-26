@@ -32,7 +32,7 @@ router.post("/", async (req, res, next) => {
       sameSite: 'None', // Allow cross-site requests for modern browsers
       domain: "screenmates-beta-v.onrender.com", // Change the domain to the common root domain
       path: '/',
-      secure: true, // Ensure the cookie is sent over HTTPS
+      secure: false, // Ensure the cookie is sent over HTTPS
       httpOnly: false
     });
     
