@@ -30,7 +30,7 @@ router.post("/", async (req, res, next) => {
     res.cookie("token", jwt, {
       maxAge: 24 * 60 * 60 * 1000, // Set maxAge in milliseconds (24 hours)
       sameSite: 'None', // Allow cross-site requests for modern browsers
-      domain: "screenmates-beta-v.onrender.com",
+      domain: "screenmates-beta-vv.onrender.com",
       secure: true
     });
     console.log(`--->cookie has been set with tiken ${jwt}`);
