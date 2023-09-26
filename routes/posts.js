@@ -279,24 +279,19 @@ router
         imgURL: publisher.imgURL,
       };
       notificationData.notificationDate = new Date();
+      notificationData._id = notification._id;
 
       io.to(connectedUsers_UserNametoId[post.publisher]).emit(
         "commentMade",
         notificationData
       );
-      console.log(
-        "__________________________________________________________________________________________________________________________________________________\n"
-      );
-      console.log(
-        `==> Comment publishing  notification has been sent successfully to user: ${
-          post.publisher
-        } with socket id : ${
-          connectedUsers_UserNametoId[post.publisher]
-        } made by user: ${req.body.publisher}`
-      );
-      console.log(
-        "__________________________________________________________________________________________________________________________________________________\n"
-      );
+      utils.logSocketEvent(`==> Comment publishing  notification has been sent successfully to user: ${
+        post.publisher
+      } with socket id : ${
+        connectedUsers_UserNametoId[post.publisher]
+      } made by user: ${req.body.publisher}`);
+
+      
     } catch (err) {
       console.log(err);
       next(err);
@@ -445,6 +440,8 @@ router
 
       notificationData.userData = userData;
       notificationData.notificationDate = new Date();
+      notificationData._id = notification._id;
+
 
       console.log(notificationData.userData);
       io.to(connectedUsers_UserNametoId[post.publisher]).emit(

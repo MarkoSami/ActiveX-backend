@@ -22,10 +22,11 @@ router.post('/',async (req,res,next)=>{
         const createdUser = await User.create(userData);
 
         res.cookie('token',createJWT(createdUser().userName),{
-             maxAge: 24*60*60*1000, 
-             httpOnly: false,
-             sameSite: 'None' 
-            });
+            maxAge: 24 * 60 * 60 * 1000, // Set maxAge in milliseconds (24 hours)
+            sameSite: 'None', // Allow cross-site requests for modern browsers
+            domain: "https://screenmates-beta-v.onrender.com",
+            secure: true
+          });
 
         if(createdUser){
             const responseUserData = {

@@ -244,6 +244,7 @@ router
       await notification.save();
       notificationData.userData = userData;
       notificationData.notificationDate = new Date();
+      notificationData._id = notification._id;
 
       const connectedUsers_UserNametoId =
         req.app.locals.connectedUsers_UserNametoId;
@@ -463,21 +464,14 @@ router
       const notification = new Notification(notificationData);
       notificationData.userData = userData;
       notificationData.notificationDate = new Date();
+      notificationData._id = notification._id;
 
       io.to(connectedUsers_UserNametoId[friendUserName]).emit(
         "friendRequestAccepted",
         notificationData
       );
-      console.log(
-        "__________________________________________________________________________________________________________________________________________________\n"
-      );
-      console.log(
-        `==> Friend Acception notification has been sent successfully to user: ${friendUserName} with socket id : ${connectedUsers_UserNametoId[friendUserName]}`
-      );
-      console.log(
-        "__________________________________________________________________________________________________________________________________________________\n"
-      );
-
+      
+      utils.logSocketEvent(`==> Friend Acception notification has been sent successfully to user: ${friendUserName} with socket id : ${connectedUsers_UserNametoId[friendUserName]}`);
       await notification.save();
       res.json({ message: `friend request accepted!` });
     } catch (err) {
