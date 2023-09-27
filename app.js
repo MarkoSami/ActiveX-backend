@@ -146,8 +146,13 @@ io.on("connection", (socket) => {
     return;
   }
 
+  try{
+    Notification.sendNotifications(socket);
+  }catch(err){
+    console.log(err);
+    next();
+  }
   // senfing unseen notification to the user
-  Notification.sendNotifications(socket);
   
   // adding the user to the rooms records
   connectedUsers_IDtoUserName[socket.id] = userName;
