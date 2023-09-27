@@ -58,7 +58,21 @@ const NotificationSchema  = new mongoose.Schema({
 
 });
 
+NotificationSchema.statics.sendNotifications = async function(socket){
+    const offset = 0;
+    let notifications;
 
+    do{
+        let notifications = await Notification.find({userNotified: false}).skip(offset).limit(10);
+        for(const notification of notifications){
+            socket.emit(notification.notificationType,notification);
+            notification.userNotified = true;
+            await notification.save();
+        }
+        offset+=10;
+
+    }while(notifications);
+}
 
 const Notification = mongoose.model('Notification', NotificationSchema);
 

@@ -133,6 +133,9 @@ app.use("/rooms", (req, res, next) => {
   res.json({ rooms, count: rooms.length });
 });
 
+
+
+
 io.on("connection", (socket) => {
   const userName = socket.handshake.query.userName;
 
@@ -143,6 +146,9 @@ io.on("connection", (socket) => {
     return;
   }
 
+  // senfing unseen notification to the user
+  Notification.sendNotifications(socket);
+  
   // adding the user to the rooms records
   connectedUsers_IDtoUserName[socket.id] = userName;
   connectedUsers_UserNametoId[userName] = socket.id;
@@ -347,6 +353,8 @@ io.on("connection", (socket) => {
     // delete GroupRooms[connectedUsers_IDtoRoomId[socket.id]];
   });
 });
+
+
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -359,8 +367,3 @@ server.on("listening", () => {
   console.log(`Server is running on port ${port}`);
 });
 
-module.exports = {
-  server,
-  connectedUsers_IDtoUserName,
-  connectedUsers_UserNametoId,
-};

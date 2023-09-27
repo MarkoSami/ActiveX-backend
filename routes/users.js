@@ -8,6 +8,7 @@ const postController = require("../controllers/postsController");
 const Notification = require("../models/Notification");
 
 const utils = require("../lib/utils");
+const { Socket } = require("socket.io");
 
 // handling HTTP requests on the '/users/' gateway
 router
@@ -239,6 +240,7 @@ router
         causativeUser: friendUserName,
         notificationType: "friendRequest",
         notificationReceiver: user.userName,
+        userNotified: connectedUsers_UserNametoId[userName]? true: false,
       };
       const notification = new Notification(notificationData);
       await notification.save();
@@ -252,19 +254,15 @@ router
       // console.log( connectedUsers_IDtoUserName);
 
       // console.log(connectedUsers_UserNametoId[friendUserName]);
-      io.to(connectedUsers_UserNametoId[userName]).emit(
-        "friendRequestSent",
-        notificationData
-      );
-      console.log(
-        "__________________________________________________________________________________________________________________________________________________\n"
-      );
-      console.log(
-        `==> Friend request notification has been sent successfully to user: ${userName} with socket id : ${connectedUsers_UserNametoId[userName]}`
-      );
-      console.log(
-        "__________________________________________________________________________________________________________________________________________________\n"
-      );
+      if(connectedUsers_UserNametoId[userName]){
+        
+        io.to(connectedUsers_UserNametoId[userName]).emit(
+          "friendRequestSent",
+          notificationData
+        );
+        utils.logSocketEvent(`==> Friend request notification has been sent successfully to user: ${userName} with socket id : ${connectedUsers_UserNametoId[userName]}`);
+      }
+    
     } catch (err) {
       console.log(err);
       next(err);
@@ -472,6 +470,7 @@ router
       );
       
       utils.logSocketEvent(`==> Friend Acception notification has been sent successfully to user: ${friendUserName} with socket id : ${connectedUsers_UserNametoId[friendUserName]}`);
+      
       await notification.save();
       res.json({ message: `friend request accepted!` });
     } catch (err) {
