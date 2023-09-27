@@ -233,7 +233,7 @@ io.on("connection",async (socket) => {
 
   socket.on("video_started", (data) => {
     if (
-      GroupRooms[data.roomId].owner !== connectedUsers_IDtoUserName[socket.id]
+      GroupRooms[data.roomId] &&GroupRooms[data.roomId].owner !== connectedUsers_IDtoUserName[socket.id]
     ) {
       console.log(`User is unuthorized to take this action!`);
       io.to(socket.id).emit("setVideoTime",{videoTime: data.currentTime});
