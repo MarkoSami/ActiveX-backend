@@ -211,6 +211,8 @@ io.on("connection",async (socket) => {
       )
     ) {
       console.log("user is already connected to this room ");
+      socket.broadcast.to(roomId).emit("userJoined", {socketId: socket.id,owner: GroupRooms[roomId].owner});
+
       return;
     }
     socket.join(roomId);
