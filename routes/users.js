@@ -229,6 +229,8 @@ router
       res.json({ message: `Friend request sent successfully!` });
       //todo
       const io = req.app.locals.io;
+      const connectedUsers_UserNametoId =
+        req.app.locals.connectedUsers_UserNametoId;
 
       const userData = {
         userName: friend.userName,
@@ -248,8 +250,6 @@ router
       notificationData.notificationDate = new Date();
       notificationData._id = notification._id;
 
-      const connectedUsers_UserNametoId =
-        req.app.locals.connectedUsers_UserNametoId;
       // console.log(connectedUsers_UserNametoId);
       // console.log( connectedUsers_IDtoUserName);
 
