@@ -237,7 +237,7 @@ io.on("connection",async (socket) => {
     ) {
       console.log(`User is unuthorized to take this action!`);
       io.to(socket.id).emit("setVideoTime",{videoTime: data.currentTime});
-      utils.logSocketEvent(`Video Time was sent to user: ${connectedUsers_IDtoUserName[data.userId]}, with id: ${data.userId}`);
+      utils.logSocketEvent(`Video Time was sent to user: ${connectedUsers_IDtoUserName[socket.id]}, with id: ${socket.id}`);
       return;
     }
     socket.to(data.roomId).emit("video_started_to", data.currentTime);
