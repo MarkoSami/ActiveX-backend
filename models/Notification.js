@@ -59,17 +59,19 @@ const NotificationSchema  = new mongoose.Schema({
 });
 
 NotificationSchema.statics.sendNotifications = async function(socket){
-    const offset = 0;
+    let offset = 0;
     let notifications;
 
     do{
-        let notifications = await Notification.find({userNotified: false}).skip(offset).limit(10);
+        // getting current batch notifications
+        notifications = await Notification.find({userNotified: false}).skip(offset).limit(10);
+        // sending unseen notifications to the user
         for(const notification of notifications){
             socket.emit(notification.notificationType,notification);
             notification.userNotified = true;
             await notification.save();
         }
-        offset+=10;
+        offset+=10;// incrementing the offset by the bactch amount
 
     }while(notifications);
 }
