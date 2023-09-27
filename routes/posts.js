@@ -58,11 +58,11 @@ router
     }
 
     // authorizing the user
-    if (!authorize(publisher.userName, "user", "create")) {
-      return res
-        .status(401)
-        .status({ Message: `User is not authorized to take this acrtion!` });
-    }
+    // if (!authorize(publisher.userName, "user", "create")) {
+    //   return res
+    //     .status(401)
+    //     .status({ Message: `User is not authorized to take this acrtion!` });
+    // }
 
     // mapping the data in the body to the data wanted to create the post and avoiding  unnecessary data
     const postData = utils.FieldMapper(body, [
@@ -91,11 +91,11 @@ router
   })
   .delete("/", async (req, res, next) => {
     try {
-      if (!authorize(req.userName, "user", "deleteAll", req)) {
-        return res
-          .status(401)
-          .json({ Message: `User is not authorized to take this action!` });
-      }
+      // if (!authorize(req.userName, "user", "deleteAll", req)) {
+      //   return res
+      //     .status(401)
+      //     .json({ Message: `User is not authorized to take this action!` });
+      // }
       const result = await Post.deleteMany({});
       res.json(result);
     } catch (err) {
