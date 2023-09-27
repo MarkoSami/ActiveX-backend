@@ -193,7 +193,7 @@ io.on("connection",async (socket) => {
     }
 
     socket.join(roomID);
-    io.emit("room_created", roomID);
+    io.emit("room_created", {roomID,owner: GroupRooms[roomID].owner});
     console.log(`User created and joined a new  room , room ID : ${roomID}`);
     console.log("____________________________________");
   });
