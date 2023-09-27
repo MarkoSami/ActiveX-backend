@@ -140,7 +140,7 @@ io.on("connection", (socket) => {
   const userName = socket.handshake.query.userName;
 
   // checking if the user is already connected or the userName is incorrect or undefined
-  if(connectedUsers_UserNametoId[userName] || !userName){
+  if(connectedUsers_UserNametoId[userName] || userName === null){
     socket.disconnect();
     utils.logSocketEvent(`User has been prevented from connecting to ther server because ${userName? `He is already connected `: `username is not correct`}!`);
     return;
@@ -329,7 +329,7 @@ io.on("connection", (socket) => {
         );
 
       }
-      
+
     }
 
     // deleting user from the records
