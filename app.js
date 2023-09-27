@@ -244,7 +244,7 @@ io.on("connection",async (socket) => {
   });
 
   socket.on("video_paused", (roomId) => {
-    if (GroupRooms[roomId].owner !== connectedUsers_IDtoUserName[socket.id]) {
+    if (GroupRooms[roomId] && GroupRooms[roomId].owner !== connectedUsers_IDtoUserName[socket.id]) {
       console.log(`User is unuthorized to take this action!`);
       return;
     }
