@@ -138,7 +138,7 @@ app.use("/rooms", (req, res, next) => {
 
 io.on("connection", (socket) => {
   const userName = socket.handshake.query.userName;
-  console.log(`===>user name wanted to connect ${userName}`);
+  console.log(`===>user name wanted to connect ${userName}  ${connectedUsers_UserNametoId[userName] }, ${userName === null}`);
   // checking if the user is already connected or the userName is incorrect or undefined
   if(connectedUsers_UserNametoId[userName] || userName === null){
     socket.disconnect();
