@@ -136,7 +136,7 @@ app.use("/rooms", (req, res, next) => {
 
 
 
-io.on("connection", (socket) => {
+io.on("connection",async (socket) => {
   const userName = socket.handshake.query.userName;
   console.log(`===>user name wanted to connect ${userName}  ${connectedUsers_UserNametoId[userName] }, ${userName === null},${typeof(userName)}`);
   // checking if the user is already connected or the userName is incorrect or undefined
@@ -213,12 +213,12 @@ io.on("connection", (socket) => {
       console.log("user is already connected to this room ");
       return;
     }
-    socket.join(roomId,{owner: GroupRooms[roomId].owner});
+    socket.join(roomId);
     connectedUsers_IDtoRoomId[socket.id] = roomId;
     GroupRooms[roomId].participants.push(
       connectedUsers_IDtoUserName[socket.id]
     );
-    socket.broadcast.to(roomId).emit("userJoined", socket.id);
+    socket.broadcast.to(roomId).emit("userJoined", {socketId: socket.id,owner: GroupRooms[roomId].owner});
     console.log(`User ${socket.id} joined room , room ID: ${roomId}`);
     console.log(`${GroupRooms[roomId].participants.length} participants:`);
     console.log(GroupRooms[roomId].participants);
