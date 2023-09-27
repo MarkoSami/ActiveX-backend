@@ -146,12 +146,12 @@ io.on("connection",async (socket) => {
     return;
   }
 
-  try{
-    Notification.sendNotifications(socket);
-  }catch(err){
-    console.log(err);
-    next();
-  }
+  // try{
+  //   Notification.sendNotifications(socket);
+  // }catch(err){
+  //   console.log(err);
+  //   next();
+  // }
   // senfing unseen notification to the user
   
   // adding the user to the rooms records
