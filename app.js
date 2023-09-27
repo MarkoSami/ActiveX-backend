@@ -310,7 +310,6 @@ io.on("connection", (socket) => {
           utils.logSocketEvent(
             `room with id ${connectedUsers_IDtoRoomId[socket.id]} was deleted!`
           );
-          return;
         } else {
           // else make the owner
           GroupRooms[userRoomId].owner = GroupRooms[userRoomId].participants[0];
@@ -318,17 +317,19 @@ io.on("connection", (socket) => {
           utils.logSocketEvent(
             `Ownership of room: ${userRoomId} has been transferred ot user: ${GroupRooms[userRoomId].owner}! `
           );
-          return;
         }
       }
+      else{
+        // it is not the owner just delete it from participants
+        GroupRooms[userRoomId].participants.splice(
+          GroupRooms[userRoomId].participants.findIndex(
+            (participant) => participant.userName === userName
+          ),
+          1
+        );
 
-      // it is not the owner just delete it from participants
-      GroupRooms[userRoomId].participants.splice(
-        GroupRooms[userRoomId].participants.findIndex(
-          (participant) => participant.userName === userName
-        ),
-        1
-      );
+      }
+      
     }
 
     // deleting user from the records
