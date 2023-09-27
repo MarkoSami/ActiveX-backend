@@ -236,11 +236,12 @@ io.on("connection",async (socket) => {
       GroupRooms[data.roomId].owner !== connectedUsers_IDtoUserName[socket.id]
     ) {
       console.log(`User is unuthorized to take this action!`);
+      io.to(socket.id).emit("setVidoTime",{videoTime: data.currentTime});
+      utils.logSocketEvent(`Video Time was sent to user: ${connectedUsers_IDtoUserName[data.userId]}, with id: ${data.userId}`);
       return;
     }
     socket.to(data.roomId).emit("video_started_to", data.currentTime);
-    console.log("video_started_to_client" + data.roomId);
-    console.log("____________________________________");
+    utils.logSocketEvent("video_started_to_client" + data.roomId);
   });
 
   socket.on("video_paused", (roomId) => {
@@ -359,6 +360,28 @@ io.on("connection",async (socket) => {
 
     // delete GroupRooms[connectedUsers_IDtoRoomId[socket.id]];
   });
+
+  // get room owner video time
+  socket.on("getVideoTime",(data)=>{
+    if(!GroupRooms[data.roomId]){
+      console.log('Room not found');
+      return;
+    }
+    const roomOwner = GroupRooms[data.roomId].owner;
+    io.to(connectedUsers_UserNametoId[roomOwner]).emit("requestedVideoTime",{userId: socket.id});
+    utils.logSocketEvent(`Video time requested by user: ${connectedUsers_IDtoRoomId[socket.id]}, with id: ${socket.id}`);
+  })
+
+  socket.on("videoTimeSent",(data)=>{
+    if(!data.userId){
+      console.log('missing user id ');
+      return;
+    }
+    io.to(data.userId).emit("setVidoTime",{videoTime: data.videoTime});
+    utils.logSocketEvent(`Video Time was sent to user: ${connectedUsers_IDtoUserName[data.userId]}, with id: ${data.userId}`);
+  })
+
+
 });
 
 
