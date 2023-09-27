@@ -319,6 +319,7 @@ io.on("connection",async (socket) => {
           // else make the owner
           GroupRooms[userRoomId].owner = GroupRooms[userRoomId].participants[0];
           GroupRooms[userRoomId].participants.splice(0, 1);
+          io.to(userRoomId).emit('ownershiptransferred',{owner: GroupRooms[userRoomId].owner});
           utils.logSocketEvent(
             `Ownership of room: ${userRoomId} has been transferred ot user: ${GroupRooms[userRoomId].owner}! `
           );
