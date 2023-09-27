@@ -236,7 +236,7 @@ io.on("connection",async (socket) => {
       GroupRooms[data.roomId].owner !== connectedUsers_IDtoUserName[socket.id]
     ) {
       console.log(`User is unuthorized to take this action!`);
-      io.to(socket.id).emit("setVidoTime",{videoTime: data.currentTime});
+      io.to(socket.id).emit("setVideoTime",{videoTime: data.currentTime});
       utils.logSocketEvent(`Video Time was sent to user: ${connectedUsers_IDtoUserName[data.userId]}, with id: ${data.userId}`);
       return;
     }
