@@ -25,7 +25,6 @@ const { errorHandler } = require("./lib/errorHandler");
 const { log, error, Console } = require("console");
 const ytdl = require("ytdl-core");
 
-
 // const { authenticate } = require('./authentication/authenticate');
 const port = process.env.PORT || "8000";
 
@@ -109,11 +108,8 @@ class Room {
   }
 }
 
-
-
 app.locals.connectedUsers_IDtoUserName = connectedUsers_IDtoUserName;
 app.locals.connectedUsers_UserNametoId = connectedUsers_UserNametoId;
-
 
 app.use("/login", loginRouter, errorHandler);
 app.use("/signup", signupRouter, errorHandler);
@@ -133,16 +129,21 @@ app.use("/rooms", (req, res, next) => {
   res.json({ rooms, count: rooms.length });
 });
 
-
-
-
-io.on("connection",async (socket) => {
+io.on("connection", async (socket) => {
   const userName = socket.handshake.query.userName;
-  console.log(`===>user name wanted to connect ${userName}  ${connectedUsers_UserNametoId[userName] }, ${userName === null},${typeof(userName)}`);
+  console.log(
+    `===>user name wanted to connect ${userName}  ${
+      connectedUsers_UserNametoId[userName]
+    }, ${userName === null},${typeof userName}`
+  );
   // checking if the user is already connected or the userName is incorrect or undefined
-  if(connectedUsers_UserNametoId[userName] || userName === null){
+  if (connectedUsers_UserNametoId[userName] || userName === null) {
     socket.disconnect();
-    utils.logSocketEvent(`User has been prevented from connecting to ther server because ${userName? `He is already connected `: `username is not correct`}!`);
+    utils.logSocketEvent(
+      `User has been prevented from connecting to ther server because ${
+        userName ? `He is already connected ` : `username is not correct`
+      }!`
+    );
     return;
   }
 
@@ -153,13 +154,15 @@ io.on("connection",async (socket) => {
   //   next();
   // }
   // senfing unseen notification to the user
-  
+
   // adding the user to the rooms records
   connectedUsers_IDtoUserName[socket.id] = userName;
   connectedUsers_UserNametoId[userName] = socket.id;
   console.log(connectedUsers_UserNametoId);
-  
-  utils.logSocketEvent(`User ${userName} with socket id: ${socket.id} connected to the server!`);
+
+  utils.logSocketEvent(
+    `User ${userName} with socket id: ${socket.id} connected to the server!`
+  );
 
   // join new room event
   socket.on("join_random_room", async () => {
@@ -193,7 +196,7 @@ io.on("connection",async (socket) => {
     }
 
     socket.join(roomID);
-    io.emit("room_created", {roomID,owner: GroupRooms[roomID].owner});
+    io.emit("room_created", { roomID, owner: GroupRooms[roomID].owner });
     console.log(`User created and joined a new  room , room ID : ${roomID}`);
     console.log("____________________________________");
   });
@@ -211,7 +214,10 @@ io.on("connection",async (socket) => {
       )
     ) {
       console.log("user is already connected to this room ");
-      socket.broadcast.to(roomId).emit("userJoined", {socketId: socket.id,owner: GroupRooms[roomId].owner});
+      socket.broadcast.to(roomId).emit("userJoined", {
+        socketId: socket.id,
+        owner: GroupRooms[roomId].owner,
+      });
 
       return;
     }
@@ -220,7 +226,11 @@ io.on("connection",async (socket) => {
     GroupRooms[roomId].participants.push(
       connectedUsers_IDtoUserName[socket.id]
     );
-    socket.broadcast.to(roomId).emit("userJoined", {socketId: socket.id,owner: GroupRooms[roomId].owner});
+    io.to(roomId).emit("userJoined", {
+      socketId: socket.id,
+      owner: GroupRooms[roomId].owner,
+    });
+
     console.log(`User ${socket.id} joined room , room ID: ${roomId}`);
     console.log(`${GroupRooms[roomId].participants.length} participants:`);
     console.log(GroupRooms[roomId].participants);
@@ -229,27 +239,46 @@ io.on("connection",async (socket) => {
   socket.on("shareVideoDetails", (data) => {
     console.log(`sharing data`);
     io.to(data.userID).emit("video_ready_to", data.videoURL);
-    // io.to(data.userID).emit("video_started_to", data.currentTime);
+    if (
+      GroupRooms[data.roomId] &&
+      GroupRooms[data.roomId].videoData.isStarted
+    ) {
+      io.to(data.userID).emit("video_started_to", data.currentTime);
+    }
     console.log(`Modified new user video time  to ${data.currentTime}`);
   });
 
   socket.on("video_started", (data) => {
     if (
-      GroupRooms[data.roomId] &&GroupRooms[data.roomId].owner !== connectedUsers_IDtoUserName[socket.id]
+      GroupRooms[data.roomId] &&
+      GroupRooms[data.roomId].owner !== connectedUsers_IDtoUserName[socket.id]
     ) {
       console.log(`User is unuthorized to take this action!`);
-      io.to(socket.id).emit("setVideoTime",{videoTime: data.currentTime});
-      utils.logSocketEvent(`Video Time was sent to user: ${connectedUsers_IDtoUserName[socket.id]}, with id: ${socket.id}`);
+      io.to(socket.id).emit("setVideoTime", { videoTime: data.currentTime });
+      utils.logSocketEvent(
+        `Video Time was sent to user: ${
+          connectedUsers_IDtoUserName[socket.id]
+        }, with id: ${socket.id}`
+      );
       return;
+    }
+    if (GroupRooms[data.roomId]) {
+      GroupRooms[data.roomId].videoData.isStarted = true;
     }
     socket.to(data.roomId).emit("video_started_to", data.currentTime);
     utils.logSocketEvent("video_started_to_client" + data.roomId);
   });
 
   socket.on("video_paused", (roomId) => {
-    if (GroupRooms[roomId] && GroupRooms[roomId].owner !== connectedUsers_IDtoUserName[socket.id]) {
+    if (
+      GroupRooms[roomId] &&
+      GroupRooms[roomId].owner !== connectedUsers_IDtoUserName[socket.id]
+    ) {
       console.log(`User is unuthorized to take this action!`);
       return;
+    }
+    if (GroupRooms[data.roomId]) {
+      GroupRooms[data.roomId].videoData.isStarted = false;
     }
     socket.to(roomId).emit("video_paused_to");
     console.log("video_paused_to_client" + roomId);
@@ -259,6 +288,7 @@ io.on("connection",async (socket) => {
   socket.on("video_ready", async (data) => {
     console.log(`===========>` + data.roomId);
     if (
+      GroupRooms[data.roomId] &&
       GroupRooms[data.roomId].owner !== connectedUsers_IDtoUserName[socket.id]
     ) {
       console.log(`User is unuthorized to take this action!`);
@@ -272,6 +302,7 @@ io.on("connection",async (socket) => {
         Title: info.videoDetails.title,
         ThumbnailURL:
           info.player_response.videoDetails.thumbnail.thumbnails.pop().url,
+        isStarted: false,
       };
       GroupRooms[data.roomId].videoData = videoData;
     } catch (err) {
@@ -279,7 +310,6 @@ io.on("connection",async (socket) => {
     }
 
     console.log(GroupRooms[data.roomId]);
-
     socket.to(data.roomId).emit("video_ready_to", data.video_URL);
     console.log(`Video ready in room ${data.roomId} , URL ${data.video_URL}`);
     console.log("____________________________________");
@@ -322,13 +352,14 @@ io.on("connection",async (socket) => {
           // else make the owner
           GroupRooms[userRoomId].owner = GroupRooms[userRoomId].participants[0];
           GroupRooms[userRoomId].participants.splice(0, 1);
-          io.to(userRoomId).emit('ownershiptransferred',{owner: GroupRooms[userRoomId].owner});
+          io.to(userRoomId).emit("ownershiptransferred", {
+            owner: GroupRooms[userRoomId].owner,
+          });
           utils.logSocketEvent(
             `Ownership of room: ${userRoomId} has been transferred ot user: ${GroupRooms[userRoomId].owner}! `
           );
         }
-      }
-      else{
+      } else {
         // it is not the owner just delete it from participants
         GroupRooms[userRoomId].participants.splice(
           GroupRooms[userRoomId].participants.findIndex(
@@ -336,9 +367,7 @@ io.on("connection",async (socket) => {
           ),
           1
         );
-
       }
-
     }
 
     // deleting user from the records
@@ -364,28 +393,35 @@ io.on("connection",async (socket) => {
   });
 
   // get room owner video time
-  socket.on("getVideoTime",(data)=>{
-    if(!GroupRooms[data.roomId]){
-      console.log('Room not found');
+  socket.on("getVideoTime", (data) => {
+    if (!GroupRooms[data.roomId]) {
+      console.log("Room not found");
       return;
     }
     const roomOwner = GroupRooms[data.roomId].owner;
-    io.to(connectedUsers_UserNametoId[roomOwner]).emit("requestedVideoTime",{userId: socket.id});
-    utils.logSocketEvent(`Video time requested by user: ${connectedUsers_IDtoRoomId[socket.id]}, with id: ${socket.id}`);
-  })
+    io.to(connectedUsers_UserNametoId[roomOwner]).emit("requestedVideoTime", {
+      userId: socket.id,
+    });
+    utils.logSocketEvent(
+      `Video time requested by user: ${
+        connectedUsers_IDtoRoomId[socket.id]
+      }, with id: ${socket.id}`
+    );
+  });
 
-  socket.on("videoTimeSent",(data)=>{
-    if(!data.userId){
-      console.log('missing user id ');
+  socket.on("videoTimeSent", (data) => {
+    if (!data.userId) {
+      console.log("missing user id ");
       return;
     }
-    io.to(data.userId).emit("setVidoTime",{videoTime: data.videoTime});
-    utils.logSocketEvent(`Video Time was sent to user: ${connectedUsers_IDtoUserName[data.userId]}, with id: ${data.userId}`);
-  })
-
-
+    io.to(data.userId).emit("setVidoTime", { videoTime: data.videoTime });
+    utils.logSocketEvent(
+      `Video Time was sent to user: ${
+        connectedUsers_IDtoUserName[data.userId]
+      }, with id: ${data.userId}`
+    );
+  });
 });
-
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -398,4 +434,3 @@ server.on("error", (err) => {
 server.on("listening", () => {
   console.log(`Server is running on port ${port}`);
 });
-
