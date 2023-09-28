@@ -234,7 +234,51 @@ router
         return;
       }
 
-      const comments = post.comments;
+      // const comments = post.comments;
+
+      const comments = await Post.aggregate([
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId(req.params.postId), // Convert postId to ObjectId if it's a string
+          },
+        },
+        {
+          $unwind: "$comments", // Unwind the comments array
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'comments.publisher',
+            foreignField: 'userName',
+            as: 'publisherData',
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  userName: 1,
+                  firstName: 1,
+                  lastName: 1,
+                  imgURL: 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          $addFields: {
+            "comments.publisherData": { $arrayElemAt: ["$publisherData", 0] }
+          }
+        },
+        {
+          $project: {
+            "comments.publisher": 0, // Exclude the original publisher field if needed
+          }
+        },
+        {
+          $replaceRoot: { newRoot: "$comments" }, // Replace the root with the comments object
+        },
+      ]
+      );
       // const comments = await Comment.aggregate([
       //   {
       //     $match: {
@@ -307,10 +351,11 @@ router
           .json({ Message: `Publisher username is not correct! ` });
         return next();
       }
-      console.log('=====>new COmmentt',newComment);
       
       const result = await post.comments.push(newComment);
       await post.save();
+
+
       newComment.commentPublisherData = {
         userName: publisher.userName,
         firstName: publisher.firstName,

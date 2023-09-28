@@ -37,11 +37,15 @@ const getpostsPipeline = (query,viewerUserName,offset,limit)=>{
               foreignField: 'userName',
               pipeline: [
                 { $project: { userName: 1, firstName: 1, lastName: 1, imgURL: 1, _id: 0 } },
+                
               ],
               as: 'commentPublisherData',
             },
           },
           { $project: { publisher: 0, _id: 0, __v: 0 } },
+          {
+            $set: { commentPublisherData: { $arrayElemAt: ['$commentPublisherData', 0] } }
+          }
         ],
         as: 'initialComments',
       },
@@ -81,6 +85,7 @@ const getpostsPipeline = (query,viewerUserName,offset,limit)=>{
 
       },
     },
+
     {
       $sort: {
         "publishDate": -1
