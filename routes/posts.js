@@ -13,11 +13,7 @@ const Notification = require("../models/Notification");
 
 router
   .get("/", async (req, res, next) => {
-    // if (!authorize(req.userName, "user", "readAll")) {
-    //   return res
-    //     .status(401)
-    //     .status({ Message: `User is not authorized to take this acrtion!` });
-    // }
+
 
     const query = {};
     if (req.query.mediaType) {
@@ -50,19 +46,15 @@ router
         .status(400)
         .json({ Message: `Publisher was not provided in the request body!` });
     }
-
+    
+    try {
     // checking for the Existence of the user
     const publisher = await User.findOne({ userName: body.publisher });
     if (!publisher) {
       return res.json(404).json({ Message: `Publisher was not found!` });
     }
 
-    // authorizing the user
-    // if (!authorize(publisher.userName, "user", "create")) {
-    //   return res
-    //     .status(401)
-    //     .status({ Message: `User is not authorized to take this acrtion!` });
-    // }
+    
 
     // mapping the data in the body to the data wanted to create the post and avoiding  unnecessary data
     const postData = utils.FieldMapper(body, [
@@ -77,9 +69,22 @@ router
       postData.mediaType = utils.extractMediTypeFromURI(postData.mediaURL);
     }
 
-    try {
       const result = await Post.create(postData);
-      res.json(result);
+
+      const reponse = {
+        _id: result.id,
+        publisher: result.publisher,
+        mediaURL: result.mediaURL,
+        caption: result.caption,
+        publishDate: result.publishDate,
+        publisherData: [{
+          userName: publisher.userName,
+          firstName: publisher.firstName,
+          lastName: publisher.lastName,
+          imgURL: publisher.imgURL
+        }]
+      }
+      res.json(reponse);
     } catch (err) {
       console.log(err);
       next(err);
@@ -214,7 +219,6 @@ router
         {
           $project: {
             publisher: 0,
-            _id: 0,
             __v: 0,
           },
         },
@@ -256,7 +260,27 @@ router
       }
       const result = await post.comments.push(newComment);
       await post.save();
-      res.json(newComment);
+      newComment.commentPublisherData = {
+        userName: publisher.userName,
+        firstName: publisher.firstName,
+        lastName: publisher.lastName,
+        imgURL: publisher.imgURL
+      }
+      
+      const response = {
+        _id: newComment.id,
+        caption: newComment.caption,
+        mediaURL: newComment.mediaURL,
+        publishDate: newComment.publishDate,
+        commentPublisherData: {
+          userName: publisher.userName,
+          firstName: publisher.firstName,
+          lastName: publisher.lastName,
+          imgURL: publisher.imgURL
+        }
+
+      };
+      res.json(response);
 
       // pushing notification to the client
       const io = req.app.locals.io;
