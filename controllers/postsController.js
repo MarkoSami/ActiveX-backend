@@ -68,13 +68,17 @@ const getpostsPipeline = (query,viewerUserName,offset,limit)=>{
         }
       },
     },
+    
     {
       $project: {
-        labels: 0,
-        comments: 0,
-        __v: 0,
-        reacts: 0,
-        publisher: 0,
+        _id: 1,
+        caption: 1,
+        mediaURL: 1,
+        postPoints: 1,
+        publishDate: 1,
+        publisherData: { $arrayElemAt: ["$publisherData", 0] },
+        initialComments: 1,
+
       },
     },
     {
