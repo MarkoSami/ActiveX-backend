@@ -277,8 +277,8 @@ io.on("connection", async (socket) => {
       console.log(`User is unuthorized to take this action!`);
       return;
     }
-    if (GroupRooms[data.roomId]) {
-      GroupRooms[data.roomId].videoData.isStarted = false;
+    if (GroupRooms[roomId]) {
+      GroupRooms[roomId].videoData.isStarted = false;
     }
     socket.to(roomId).emit("video_paused_to");
     console.log("video_paused_to_client" + roomId);
