@@ -85,6 +85,47 @@ router
         }]
       }
       res.json(reponse);
+
+      const io = req.app.locals;
+      const connectedUsers_UserNametoId = req.app.locals;
+
+      // modify
+      const userData = {
+        userName: publisher.userName,
+        imgURL: publisher.imgURL,
+        firstName: publisher.firstName,
+        lasName: publisher.lastName,
+      };
+      const notificationData = {
+        causativeUser: publisher.userName,
+        notificationType: "postMade",
+        notificationReceiver: post.publisher,
+        postId: result._id,
+        userNotified: connectedUsers_UserNametoId[post.publisher]? true: false,
+      };
+      const notification = new Notification(notificationData);
+      await notification.save();
+      console.log("notification saved successfully!");
+
+      notificationData.userData = userData;
+      notificationData.notificationDate = new Date();
+      notificationData._id = notification._id;
+
+
+      if(connectedUsers_UserNametoId[publisher.userName]){
+
+        io.to(connectedUsers_UserNametoId[publisher.userNamer]).emit(
+          "postMade",
+          notificationData
+        );
+  
+        utils.logSocketEvent(`Sent Post notification`);
+      }
+
+
+
+
+      
     } catch (err) {
       console.log(err);
       next(err);
@@ -114,7 +155,7 @@ router
 router
   .get("/:postID", async (req, res, next) => {
     try {
-      console.log(`entered the post b y id `);
+      console.log(`entered the post b y id ${req.params.postID}`);
       const postId = req.params.postID;
       const post = await postController.getPosts(
         { _id: new mongoose.Types.ObjectId(postId) },
@@ -192,43 +233,47 @@ router
         res.status(404).json({ err: `Post not found` });
         return;
       }
-      const comments = await Comment.aggregate([
-        {
-          $match: {
-            _id: { $in: post.comments },
-          },
-        },
-        {
-          $lookup: {
-            from: "users",
-            localField: "publisher",
-            foreignField: "userName",
-            as: "publisherData",
-            pipeline: [
-              {
-                $project: {
-                  userName: 1,
-                  firstName: 1,
-                  lastName: 1,
-                  imgURL: 1,
-                },
-              },
-            ],
-          },
-        },
-        {
-          $project: {
-            publisher: 0,
-            __v: 0,
-          },
-        },
-      ]);
+
+      const comments = post.comments;
+      // const comments = await Comment.aggregate([
+      //   {
+      //     $match: {
+      //       _id: { $in: post.comments },
+      //     },
+      //   },
+      //   {
+      //     $lookup: {
+      //       from: "users",
+      //       localField: "publisher",
+      //       foreignField: "userName",
+      //       as: "publisherData",
+      //       pipeline: [
+      //         {
+      //           $project: {
+      //             userName: 1,
+      //             firstName: 1,
+      //             lastName: 1,
+      //             imgURL: 1,
+      //           },
+      //         },
+      //       ],
+      //     },
+      //   },
+      //   {
+      //     $project: {
+      //       publisher: 0,
+      //       __v: 0,
+      //     },
+      //   },
+      // ]);
+
       res.json(comments);
     } catch (err) {
       console.log(err);
       next(err);
     }
   })
+
   .post("/:postId/comments", async (req, res, next) => {
     const postId = req.params.postId;
     if (!postId) {
@@ -243,10 +288,14 @@ router
         "caption",
         "mediaURL",
       ]);
+
+      
+
       const newComment = new Comment(commentData);
-      await newComment.save();
+
       const post = await Post.findById(postId);
       const publisher = await User.findOne({ userName: req.body.publisher });
+
       // validating the post existence
       if (!post) {
         res.status(404).json({ err: `Post not found!` });
@@ -258,6 +307,8 @@ router
           .json({ Message: `Publisher username is not correct! ` });
         return next();
       }
+      console.log('=====>new COmmentt',newComment);
+      
       const result = await post.comments.push(newComment);
       await post.save();
       newComment.commentPublisherData = {
@@ -293,6 +344,7 @@ router
         commentId: newComment._id,
         notificationReceiver: post.publisher,
         postId: post._id,
+        userNotified: connectedUsers_UserNametoId[post.publisher]? true : false,
       };
       const notification = new Notification(notificationData);
       await notification.save();
@@ -305,15 +357,18 @@ router
       notificationData.notificationDate = new Date();
       notificationData._id = notification._id;
 
-      io.to(connectedUsers_UserNametoId[post.publisher]).emit(
-        "commentMade",
-        notificationData
-      );
-      utils.logSocketEvent(`==> Comment publishing  notification has been sent successfully to user: ${
-        post.publisher
-      } with socket id : ${
-        connectedUsers_UserNametoId[post.publisher]
-      } made by user: ${req.body.publisher}`);
+      if(connectedUsers_UserNametoId[post.publisher]){
+
+        io.to(connectedUsers_UserNametoId[post.publisher]).emit(
+          "commentMade",
+          notificationData
+        );
+        utils.logSocketEvent(`==> Comment publishing  notification has been sent successfully to user: ${
+          post.publisher
+        } with socket id : ${
+          connectedUsers_UserNametoId[post.publisher]
+        } made by user: ${req.body.publisher}`);
+      }
 
       
     } catch (err) {
@@ -331,13 +386,133 @@ router
       return next();
     }
     try {
-      const result = await Comment.deleteMany({});
-      res.json(result);
+      // const result = await Comment.deleteMany({});
+      const post = await Post.findById(postId);
+      const commentCount = post.comments.length;
+      post.comments = [];
+      await post.save();
+      
+       
+      res.json({Messge: `Deleted ${commentCount} comments successfully!`});
     } catch (err) {
       console.log(err);
       next(err);
     }
   });
+
+
+  router.get("/:postId/comments/:commentId",async (req,res,next)=>{
+    console.log(req.params.postId,req.params.commentId );
+    if(!req.params.postId || !req.params.commentId){
+      return res.json(400).json({Message: `Invalid or missing  parameters!`});
+    }
+    try{
+      const comment = await Post.aggregate([
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId(req.params.postId), // Convert postId to ObjectId if it's a string
+          },
+        },
+        {
+          $unwind: "$comments", // Unwind the comments array
+        },
+        {
+          $match: { "comments._id": new mongoose.Types.ObjectId(req.params.commentId) }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'comments.publisher',
+            foreignField: 'userName',
+            as: 'publisherData',
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  userName: 1,
+                  firstName: 1,
+                  lastName: 1,
+                  imgURL: 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          $addFields: {
+            "comments.publisherData": { $arrayElemAt: ["$publisherData", 0] }
+          }
+        },
+        {
+          $project: {
+            "comments.publisher": 0, // Exclude the original publisher field if needed
+          }
+        },
+        {
+          $replaceRoot: { newRoot: "$comments" }, // Replace the root with the comments object
+        },
+      ]
+      );
+        
+      
+      if(!comment.length){
+        return res.status(404).json({Message: `Comment not found!`});
+      }
+      // console.log(comment);
+      res.json(comment[0])
+    }catch(err){
+      console.log(err);
+      next(err);
+    }
+  })
+  .put("/:postId/comments/:commentId",async (req,res,next)=>{
+    
+    try{
+      const result   = await  Post.updateOne({
+        _id: new mongoose.Types.ObjectId(req.params.postId),
+        'comments._id': new mongoose.Types.ObjectId(req.params.commentId),
+       },
+       {
+        $set: {
+          'comments.$.caption': req.body.caption? req.body.caption :  'comments.$.caption',
+          'comments.$.mediaURL': req.body.mediaURL? req.body.mediaURL :  'comments.$.mediaURL',
+        }
+      });
+
+      res.status(result? 200 : 404).json({Message: result? `Comment was updated successfully!` : `Comment not found!`});
+
+    }catch(err){
+      console.log(err);
+      next(err);
+    }
+  })
+  .delete("/:postId/comments/:commentId",async (req,res,next)=>{
+
+    try{
+      
+      const result = await Post.updateOne(
+        {
+        _id: new mongoose.Types.ObjectId(req.params.postId),
+        },
+        {
+          $pull: {
+            comments:{_id: new mongoose.Types.ObjectId(req.params.commentId)}  
+          }
+        }
+      );
+      res.status(result? 200 : 404).json({Message: result? `Comment was deleted successfully!` : `Comment not found!`});
+
+    }catch(err){
+      console.log(err)
+      next(err);
+    }
+
+  })
+
+
+  .all("/:postId/comments/:commentId",async (req,res,next)=>{
+    res.status(401).json({Message: `This operation is not  allowed on path ${req.path}   `})
+  })
 
 // to get a specific post reacts
 router
@@ -457,6 +632,7 @@ router
         reactType,
         notificationReceiver: post.publisher,
         postId: postID,
+        userNotified: connectedUsers_UserNametoId[post.publisher]? true: false,
       };
       const notification = new Notification(notificationData);
       await notification.save();
@@ -467,19 +643,21 @@ router
       notificationData._id = notification._id;
 
 
-      console.log(notificationData.userData);
-      io.to(connectedUsers_UserNametoId[post.publisher]).emit(
-        "reactMade",
-        notificationData
-      );
+      if(connectedUsers_UserNametoId[post.publisher]){
 
-      utils.logSocketEvent(`Sent user react notification to user ${
-        post.publisher
-      } with socketId: ${
-        connectedUsers_UserNametoId[post.publisher]
-      } on post with if : ${post._id} by user ${publisher} with socketId: ${
-        connectedUsers_UserNametoId[publisher]
-      } `);
+        io.to(connectedUsers_UserNametoId[post.publisher]).emit(
+          "reactMade",
+          notificationData
+        );
+  
+        utils.logSocketEvent(`Sent user react notification to user ${
+          post.publisher
+        } with socketId: ${
+          connectedUsers_UserNametoId[post.publisher]
+        } on post with if : ${post._id} by user ${publisher} with socketId: ${
+          connectedUsers_UserNametoId[publisher]
+        } `);
+      }
       
     } catch (err) {
       console.log(err);
