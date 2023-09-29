@@ -79,6 +79,7 @@
             if(this.mediaType && extractMediTypeFromURI(this.mediaURL) !== this.mediaType){
                 this.invalidate('mediaType','mediaType is not valid for this media!',this.mediaType);
             }
+
             next();
           });
 

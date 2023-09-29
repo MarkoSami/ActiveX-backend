@@ -19,14 +19,28 @@ const UserSchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: [true, `First name is required`],
-    min: [2, `First name can't be less than two charachters `],
-    max: [15, `First name is too long`],
+    minlength: [2, `First name can't be less than two charachters `],
+    maxlength: [15, `First name is too long`],
+    validate: {
+      // validate that tthe username doesn't contain anu special charachters excepts '_'
+      validator: function (value) {
+        return /^[a-zA-Z0-9_]+$/.test(value);
+      },
+      message: "FirstName must only contain letters, numbers, and underscores.",
+    },
   },
   lastName: {
     type: String,
     required: [true, `Last name is required`],
-    min: [2, `Last name can't be less than two charachters `],
-    max: [15, `Last name is too long`],
+    minlength: [2, `Last name can't be less than two charachters `],
+    maxlength: [15, `Last name is too long`],
+    validate: {
+      // validate that tthe username doesn't contain anu special charachters excepts '_'
+      validator: function (value) {
+        return /^[a-zA-Z0-9_]+$/.test(value);
+      },
+      message: "LastName must only contain letters, numbers, and underscores.",
+    },
   },
   password: {
     type: String,
