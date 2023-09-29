@@ -111,10 +111,18 @@ class Room {
 app.locals.connectedUsers_IDtoUserName = connectedUsers_IDtoUserName;
 app.locals.connectedUsers_UserNametoId = connectedUsers_UserNametoId;
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', true);
+  res.header('Access-Control-Allow-Origin', "https://screenmates-beta-vv.onrender.com");
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+
 app.use("/login", loginRouter, errorHandler);
 app.use("/signup", signupRouter, errorHandler);
 
-app.use(authenticate);
+// app.use(authenticate);
 app.use("/users", usersRouter, errorHandler);
 app.use("/posts", postsRouter, errorHandler);
 app.use("/comments", commentRouter, errorHandler);
