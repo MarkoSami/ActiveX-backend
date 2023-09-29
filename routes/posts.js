@@ -339,7 +339,16 @@ router
 
       const post = await Post.findById(postId);
       const publisher = await User.findOne({ userName: req.body.publisher });
-
+      if(!newComment.caption && !newComment.mediaURL){
+        const validationError = new mongoose.Error.ValidationError();
+        validationError.errors.caption = new mongoose.Error.ValidatorError({
+          message: 'You must include a caption or a media in your comment!',
+        });
+        validationError.errors.mediaURL = new mongoose.Error.ValidatorError({
+          message: 'You must include a caption or a media in your comment!',
+        });
+        throw validationError
+      }
       // validating the post existence
       if (!post) {
         res.status(404).json({ err: `Post not found!` });
@@ -513,19 +522,26 @@ router
   .put("/:postId/comments/:commentId",async (req,res,next)=>{
     
     try{
+      const updateFields = {};
+
+      if (req.body.caption) {
+        updateFields['comments.$.caption'] = req.body.caption;
+      }
+
+      if (req.body.mediaURL) {
+        updateFields['comments.$.mediaURL'] = req.body.mediaURL;
+      }
+
+      const updateOperation = {
+        $set: updateFields
+      };
+
       const result   = await  Post.updateOne({
         _id: new mongoose.Types.ObjectId(req.params.postId),
         'comments._id': new mongoose.Types.ObjectId(req.params.commentId),
        },
 
-        {
-          $set: {
-            
-            'comments.$.caption': req.body.caption || '$comments.$.caption',
-            'comments.$.mediaURL': req.body.mediaURL || '$comments.$.mediaURL',
-          }
-        
-        }
+       updateOperation
       );
 
       res.status(result? 200 : 404).json({Message: result? `Comment was updated successfully!` : `Comment not found!`});
