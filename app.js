@@ -122,7 +122,7 @@ app.use((req, res, next) => {
 app.use("/login", loginRouter, errorHandler);
 app.use("/signup", signupRouter, errorHandler);
 
-// app.use(authenticate);
+app.use(authenticate);
 app.use("/users", usersRouter, errorHandler);
 app.use("/posts", postsRouter, errorHandler);
 app.use("/comments", commentRouter, errorHandler);
