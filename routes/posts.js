@@ -233,6 +233,8 @@ router
         res.status(404).json({ err: `Post not found` });
         return;
       }
+      const offset = req.query.offset? req.query.offset : 0 ;
+      const limit = req.query.limit? req.query.limit : 10;
 
       // const comments = post.comments;
 
@@ -277,6 +279,16 @@ router
         {
           $replaceRoot: { newRoot: "$comments" }, // Replace the root with the comments object
         },
+        {
+          $sort:{publishDate: -1},
+        },
+        {
+          $skip: (offset<=0)? 0 : (offset-1)* + limit
+        },
+        {
+          $limit: +limit
+        }
+
       ]
       );
       // const comments = await Comment.aggregate([

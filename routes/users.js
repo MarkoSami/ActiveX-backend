@@ -349,18 +349,54 @@ router
       res.status(400).json({ err: `wrong parameters!` });
       return next();
     }
+    const offset = req.query.offset? req.query.offset : 0;
+    const limit  = req.query.limit? req.query.limit : 10;
 
     try {
       // checking  for the existence of the user
-      const user = await User.findOne({ userName });
-      if (!user) {
-        return res.status(404).json({ Message: `User not found!` });
-      }
+      const friends = await User.aggregate([
+          {
+            $match: {userName: userName}
+          },
+          {
+            $unwind: "$friends"
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "friends",
+              foreignField: 'userName',
+              as: "friends",
+              pipeline: [
+                {
+                  $project: {
+                    _id: -1,
+                    userName: 1,
+                    firstName: 1,
+                    lastName: 1,
+                    imgURL: 1
+                  }
+                }
+              ]
+            }
+          },
+          {
+            $project: {
+              _id: 0,
+              friends: 1
+            }
+          },
+          {
+            $replaceRoot: { newRoot: { $arrayElemAt: ["$friends", 0] } }
+          },
+          {
+            $skip: (offset<=0)? 0 : (offset-1)* +limit
+          },
+          {
+            $limit: +limit
+          }
 
-      const friendsUserNames = user.friends;
-      const friends = await userController.getUsers({
-        userName: { $in: friendsUserNames },
-      });
+      ]);
       res.json(friends);
     } catch (err) {
       console.log(err);
@@ -474,7 +510,7 @@ router
       await notification.save();
       const deleteRequestNotificationResult = await Notification.deleteOne({notificationReceiver: user.userName,causativeUser: friend.userName,notificationType: 'friendRequest'});
       
-      if(!deleteRequestNotificationResult){
+      if(!deleteRequestNotificationResult.deletedCount){
         console.log('Error happened while trying to delete the notification of friend request');
         throw new Error('friendRequest');
       }
@@ -562,6 +598,8 @@ router
 router
   .get("/:userName/notifications", async (req, res, next) => {
     try {
+      const offset = req.query.offset? req.query.offset : 0;
+      const limit = req.query.limit? req.query.limit : 10;
       const notifications = await Notification.aggregate([
         {
           $match: { notificationReceiver: req.params.userName },
@@ -587,8 +625,17 @@ router
           },
         },
         {
+          $sort: {notificationDate: -1}
+        },
+        {
+          $skip: (offset<=0)? 0 : (offset-1)*limit
+        },
+        {
           $set: { userData: { $first: "$userData" } },
         },
+        {
+          $limit: +limit
+        }
       ]);
 
       res.json({
@@ -612,7 +659,7 @@ router
   })
   .all("/:userName/notifications", async (req, res, next) => {
     res.status(401).json({
-      Message: `The only allowed methos on path: ${req.path} is GET `,
+      Message: `The only allowed methos on path: ${req.path} is GET and DELETE method used: ${req.method}` ,
     });
   });
 

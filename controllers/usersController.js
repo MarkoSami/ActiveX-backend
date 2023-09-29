@@ -10,9 +10,7 @@ const getUsersPipeline = (query,vierwerUserName,offset ,limit ) => {
   limit = (!limit || limit>30) ? +30 : +limit; // validating the limit value
   offset = (!offset || offset <=0 )? 0 : +offset; 
   return [
-      {
-        $skip: (!offset)?  0 :(offset-1)*limit
-      },
+      
       {
         $match: (query) ? query : {}
       },
@@ -86,6 +84,9 @@ const getUsersPipeline = (query,vierwerUserName,offset ,limit ) => {
           coverURL: 1,
           friendshipStatus: 1 
         }
+      },
+      {
+        $skip: (!offset)?  0 :(offset-1)*limit
       },
       {
         $limit: limit? limit : +30

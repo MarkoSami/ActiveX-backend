@@ -27,7 +27,7 @@ router
       
       const feed = await postController.getPosts(
         { publisher: { $in: [userName, ...user[0].friends] } },
-        req.query.req,
+        userName,
         offset,
         limit
       );
