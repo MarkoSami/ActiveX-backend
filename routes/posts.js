@@ -77,12 +77,12 @@ router
         mediaURL: result.mediaURL,
         caption: result.caption,
         publishDate: result.publishDate,
-        publisherData: [{
+        publisherData: {
           userName: publisher.userName,
           firstName: publisher.firstName,
           lastName: publisher.lastName,
           imgURL: publisher.imgURL
-        }]
+        }
       }
       res.json(reponse);
 
