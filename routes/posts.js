@@ -517,12 +517,16 @@ router
         _id: new mongoose.Types.ObjectId(req.params.postId),
         'comments._id': new mongoose.Types.ObjectId(req.params.commentId),
        },
-       {
-        $set: {
-          'comments.$.caption': req.body.caption? req.body.caption :  'comments.$.caption',
-          'comments.$.mediaURL': req.body.mediaURL? req.body.mediaURL :  'comments.$.mediaURL',
+
+        {
+          $set: {
+            
+            'comments.$.caption': req.body.caption || '$comments.$.caption',
+            'comments.$.mediaURL': req.body.mediaURL || '$comments.$.mediaURL',
+          }
+        
         }
-      });
+      );
 
       res.status(result? 200 : 404).json({Message: result? `Comment was updated successfully!` : `Comment not found!`});
 
