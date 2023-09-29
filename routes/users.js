@@ -472,6 +472,12 @@ router
       utils.logSocketEvent(`==> Friend Acception notification has been sent successfully to user: ${friendUserName} with socket id : ${connectedUsers_UserNametoId[friendUserName]}`);
       
       await notification.save();
+      const deleteRequestNotificationResult = await Notification.deleteOne({notificationReceiver: user.userName,causativeUser: friend.userName,notificationType: 'friendRequest'});
+      
+      if(!deleteRequestNotificationResult){
+        console.log('Error happened while trying to delete the notification of friend request');
+        throw new Error('friendRequest');
+      }
       res.json({ message: `friend request accepted!` });
     } catch (err) {
       console.log(err);
@@ -594,7 +600,17 @@ router
       next();
     }
   })
-  .all("/:userName/:postId", async (req, res, next) => {
+  .delete("/:userName/notifications",async (req,res,next)=>{
+    try{
+      const deleteResult = await Notification.deleteMany({notificationReceiver: req.params.userName});
+      res.json(deleteResult);
+
+    }catch(err){
+      console.log(err);
+      next(err);
+    }
+  })
+  .all("/:userName/notifications", async (req, res, next) => {
     res.status(401).json({
       Message: `The only allowed methos on path: ${req.path} is GET `,
     });
