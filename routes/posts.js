@@ -266,7 +266,7 @@ router
         },
         {
           $addFields: {
-            "comments.publisherData": { $arrayElemAt: ["$publisherData", 0] }
+            "comments.commentPublisherData": { $arrayElemAt: ["$publisherData", 0] }
           }
         },
         {
