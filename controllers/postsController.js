@@ -6,6 +6,7 @@ const getpostsPipeline = (query,viewerUserName,offset,limit)=>{
   limit = (!limit || limit>30) ? +30 : +limit; // validating the limit value
   offset = (!offset || offset <=0 )? 0 : +offset;  
   console.log(`===>${(!offset)?  0 :(offset-1)*limit}`);
+  console.log(viewerUserName);
   return [
     
     {
@@ -81,6 +82,7 @@ const getpostsPipeline = (query,viewerUserName,offset,limit)=>{
         postPoints: 1,
         publishDate: 1,
         publisherData: { $arrayElemAt: ["$publisherData", 0] },
+        userReact: 1
        
 
       },

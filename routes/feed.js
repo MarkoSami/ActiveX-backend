@@ -17,7 +17,7 @@ router
     }
     try {
       //query,viewerUserName,offset,limit
-      const user = await User.find({ userName });
+      const user = await User.findOne({ userName });
       if (!user) {
         return res.status(404).json("User not found!");
       }
@@ -26,8 +26,8 @@ router
       // }
       
       const feed = await postController.getPosts(
-        { publisher: { $in: [userName, ...user[0].friends] } },
-        userName,
+        { publisher: { $in: [userName, ...user.friends] } },
+        'minamelad232',
         offset,
         limit
       );
