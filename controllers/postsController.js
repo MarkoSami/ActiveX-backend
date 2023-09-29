@@ -81,11 +81,30 @@ const getpostsPipeline = (query,viewerUserName,offset,limit)=>{
         postPoints: 1,
         publishDate: 1,
         publisherData: { $arrayElemAt: ["$publisherData", 0] },
-        initialComments: 1,
-        initialComments: { $slice: ["$comments", 10] }
+       
 
       },
     },
+    
+    // {
+    //   $lookup: {
+    //     from: "users",
+    //     localField: "initialComments.publisher",
+    //     foreignField: "userName",
+    //     as: "commentPublisherData",
+    //     pipeline: [
+    //       {
+    //         $project: {
+    //           _id: 0,
+    //           userName: 1,
+    //           firstName: 1,
+    //           lastName: 1,
+    //           imgURL: 1
+    //         }
+    //       }
+    //     ]
+    //   }
+    // },
 
     {
       $sort: {
