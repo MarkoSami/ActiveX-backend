@@ -74,6 +74,11 @@ const getUsersPipeline = (query,vierwerUserName,offset ,limit ) => {
         }
       },
       {
+        $set: {
+          friendsCount: { $size: "$friends" }
+        }
+      },
+      {
         $project: {
           _id: 0,
           firstName: 1,
@@ -82,7 +87,8 @@ const getUsersPipeline = (query,vierwerUserName,offset ,limit ) => {
           userName: 1,
           imgURL: 1,
           coverURL: 1,
-          friendshipStatus: 1 
+          friendshipStatus: 1 ,
+          friendsCount: 1
         }
       },
       {
