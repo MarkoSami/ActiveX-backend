@@ -602,7 +602,12 @@ router
       const limit = req.query.limit? req.query.limit : 10;
       const notifications = await Notification.aggregate([
         {
-          $match: { notificationReceiver: req.params.userName },
+          $match: {
+            $and: [
+              { notificationReceiver: req.params.userName },
+              { notificationReceiver: { $ne: '$causativeUser'} }
+            ]
+          }
         },
         {
           $lookup: {
