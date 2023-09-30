@@ -10,7 +10,7 @@ router
     const userName = req.params.userName;
     const offset = req.query.offset ? req.query.offset : 0;
     const limit = req.query.limit ? req.query.limit : 10;
-    console.log(`====>offset: ${offset} limit: ${limit}`);
+    console.log(`====>userName: ${userName}`);
     if (!userName) {
       res.status(400).json({ err: `there is no userID in the request` });
       return;
@@ -27,7 +27,7 @@ router
       
       const feed = await postController.getPosts(
         { publisher: { $in: [userName, ...user.friends] } },
-        'minamelad232',
+        userName,
         offset,
         limit
       );
