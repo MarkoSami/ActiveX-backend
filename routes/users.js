@@ -312,7 +312,7 @@ router.delete(
         return;
       }
 
-      // checking foe the exstance of the friend in the current user friend list
+      // checking foe the existence of the friend in the current user friend list
       if (!user.friendRequests.find((friend) => friend === friendUserName)) {
         res.status(404).json({
           err: `The user wanted to be removed is not in  friend requests list!`,
@@ -331,7 +331,7 @@ router.delete(
         (friend) => friend !== userName
       );
       await friend.save();
-
+        const deletedNotificationsResult = Notification.deleteOne({causativeUser: friendUserName, notificationReceiver: user.userName, notificationType: 'friendRequest'});
       res.json({ message: `Friend request is removed successfully!` });
     } catch (err) {
       console.log(err);
