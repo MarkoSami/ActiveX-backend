@@ -122,6 +122,15 @@ app.use((req, res, next) => {
 app.use("/login", loginRouter, errorHandler);
 app.use("/signup", signupRouter, errorHandler);
 
+app.post("/logout",(req,res,next)=>{
+  const token = req.cookies["token"];
+  if(!token){
+    return res.status(401).json({Message: `User is not logged in!`});
+  }
+  res.clearCookie("token");
+  res.json({Message: "User logged out successfully!"});
+})
+
 app.use(authenticate);
 app.use("/users", usersRouter, errorHandler);
 app.use("/posts", postsRouter, errorHandler);
