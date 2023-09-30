@@ -112,7 +112,7 @@ router
       notificationData._id = notification._id;
 
 
-      if(connectedUsers_UserNametoId[publisher.userName]){
+      if(connectedUsers_UserNametoId[publisher.userName] && notification.causativeUser !== reponse.publisher){
 
         io.to(connectedUsers_UserNametoId[publisher.userNamer]).emit(
           "postMade",
@@ -720,7 +720,7 @@ router
       notificationData._id = notification._id;
 
 
-      if(connectedUsers_UserNametoId[post.publisher]){
+      if(connectedUsers_UserNametoId[post.publisher] && notification.causativeUser !== post.publisher){
 
         io.to(connectedUsers_UserNametoId[post.publisher]).emit(
           "reactMade",
