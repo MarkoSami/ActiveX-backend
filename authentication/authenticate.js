@@ -37,7 +37,7 @@
             }
 
             res.status(401).json({Message: `User not found!, redirect to login page`}) // Redirect if userName is not fund in the database
-            return; 
+
         } catch (error) {   
             console.log(error);
             next();
