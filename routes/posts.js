@@ -413,7 +413,7 @@ router
         userNotified: connectedUsers_UserNametoId[post.publisher]? true : false,
       };
       const notification = new Notification(notificationData);
-      await notification.save();
+      (notification.causativeUser != post.publisher)  && (await notification.save());
 
       notificationData.postID = post._id;
       notificationData.userData = {
@@ -423,7 +423,7 @@ router
       notificationData.notificationDate = new Date();
       notificationData._id = notification._id;
 
-      if(connectedUsers_UserNametoId[post.publisher]){
+      if(connectedUsers_UserNametoId[post.publisher] && notification.causativeUser != post.publisher){
 
         io.to(connectedUsers_UserNametoId[post.publisher]).emit(
           "commentMade",

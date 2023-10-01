@@ -620,7 +620,7 @@ router
                 $project: {
                   _id: 0,
                   userName: 1,
-                  userImgURL: 1,
+                  ImgURL: 1,
                 },
               },
               {
