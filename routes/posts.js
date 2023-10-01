@@ -104,7 +104,7 @@ router
         userNotified: connectedUsers_UserNametoId[post.publisher]? true: false,
       };
       const notification = new Notification(notificationData);
-      await notification.save();
+      (notification.causativeUser !== reponse.publisher) && (await notification.save());
       console.log("notification saved successfully!");
 
       notificationData.userData = userData;
