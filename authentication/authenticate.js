@@ -12,7 +12,8 @@
         console.log(cookies['token']);
         if (!cookies || !('token' in cookies)) {
             console.log(`Missing token cookie`);
-            res.status(401).json({Message: `Missing token cookie, rdirect to login page`}) // Redirect if userName is missing in the token
+            res.status(401).json({Message: `Missing token cookie, rdirected to login page`}) // Redirect if userName is missing in the token
+            res.redirect("#/login");
             return; 
         }
 
@@ -24,7 +25,8 @@
             if (!decodedToken.userName) {
             console.log(`Missing username`);
 
-                res.status(401).json({Message: `Missing username, redirect to login page`}) // Redirect if userName is missing in the token
+                res.status(401).json({Message: `Missing username, redirected to login page`}) // Redirect if userName is missing in the token
+                res.redirect("#/login");
                 return ;
             }
 
@@ -36,8 +38,8 @@
                 return;
             }
 
-            res.status(401).json({Message: `User not found!, redirect to login page`}) // Redirect if userName is not fund in the database
-
+            res.status(401).json({Message: `User not found!, redirected to login page`}) // Redirect if userName is not fund in the database
+            res.redirect("#/login");
         } catch (error) {   
             console.log(error);
             next();
