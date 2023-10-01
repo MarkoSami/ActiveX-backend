@@ -35,7 +35,6 @@ cloudinaryLib.configCloudinary();
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
-app.use(express.static("dist"));
 
 app.set("view engine", "jade");
 
@@ -132,6 +131,7 @@ app.post("/logout",(req,res,next)=>{
 })
 
 app.use(authenticate);
+app.use(express.static("dist"));
 app.use("/users", usersRouter, errorHandler);
 app.use("/posts", postsRouter, errorHandler);
 app.use("/comments", commentRouter, errorHandler);
