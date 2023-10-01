@@ -18,7 +18,7 @@
         }
 
         const token = cookies['token'];
-        console.log(token);
+
         try {
             const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
 
