@@ -128,7 +128,7 @@ app.post("/logout",(req,res,next)=>{
     return res.status(401).json({Message: `User is not logged in!`});
   }
   res.clearCookie("token");
-  res.redirect('/#/login');
+  res.redirect("/#/login");
 })
 
 app.use(authenticate);
