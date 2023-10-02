@@ -479,10 +479,10 @@ router
       );
 
       const userData = {
-        userName: friend.userName,
-        imgURL: friend.imgURL,
-        firstName: friend.firstName,
-        lastName: friend.lastName,
+        userName: user.userName,
+        imgURL: user.imgURL,
+        firstName: user.firstName,
+        lastName: user.lastName,
       };
       const io = req.app.locals.io;
       const connectedUsers_UserNametoId =
