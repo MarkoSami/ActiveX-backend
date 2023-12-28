@@ -1,10 +1,6 @@
 const { User } = require('../models/User');
 const mongoose = require('mongoose');
 
-// const usersMatchQuery = (querry) => {
-//     return (querry) ? querry : {};
-// };
-
 const getUsersPipeline = (query,vierwerUserName,offset ,limit ) => {
   
   limit = (!limit || limit>30) ? +30 : +limit; // validating the limit value
