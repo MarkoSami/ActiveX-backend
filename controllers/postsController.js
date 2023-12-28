@@ -24,33 +24,7 @@ const getpostsPipeline = (query,viewerUserName,offset,limit)=>{
         as: 'publisherData',
       },
     },
-    // {
-    //   $lookup: {
-    //     from: 'comments',
-    //     localField: 'comments',
-    //     foreignField: '_id',
-    //     pipeline: [
-    //       { $limit: 10 },
-    //       {
-    //         $lookup: {
-    //           from: 'users',
-    //           localField: 'publisher',
-    //           foreignField: 'userName',
-    //           pipeline: [
-    //             { $project: { userName: 1, firstName: 1, lastName: 1, imgURL: 1 } },
-                
-    //           ],
-    //           as: 'commentPublisherData',
-    //         },
-    //       },
-    //       { $project: { publisher: 0, _id: 0, __v: 0 } },
-    //       {
-    //         $set: { commentPublisherData: { $arrayElemAt: ['$commentPublisherData', 0] } }
-    //       }
-    //     ],
-    //     as: 'initialComments',
-    //   },
-    // },
+    
     {
       $addFields: {
         userReact: {
@@ -87,26 +61,6 @@ const getpostsPipeline = (query,viewerUserName,offset,limit)=>{
 
       },
     },
-    
-    // {
-    //   $lookup: {
-    //     from: "users",
-    //     localField: "initialComments.publisher",
-    //     foreignField: "userName",
-    //     as: "commentPublisherData",
-    //     pipeline: [
-    //       {
-    //         $project: {
-    //           _id: 0,
-    //           userName: 1,
-    //           firstName: 1,
-    //           lastName: 1,
-    //           imgURL: 1
-    //         }
-    //       }
-    //     ]
-    //   }
-    // },
 
     {
       $sort: {
