@@ -72,3 +72,21 @@ $ npm i
 ```sh
 $ npm run dev
 ```
+
+
+1. Clone the repository (Backend Side)
+
+```sh
+HTTPS - $ git clone https://github.com/MarkoSami/ScreenMates-backend.git
+```
+
+3. Install the dependencies.
+
+```sh
+$ npm i
+```
+
+
+```sh
+$ npm start
+```
